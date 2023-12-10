@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 extern user_config_t   user_config;
 extern DEV_INFO_STRUCT dev_info;
 extern uint16_t        rf_linking_time;
+extern uint16_t        rf_link_timeout;
 extern uint16_t        no_act_time;
 extern bool            f_goto_sleep;
 extern bool            f_wakeup_prepare;
@@ -98,7 +99,7 @@ void sleep_handle(void) {
         if (no_act_time >= SLEEP_TIME_DELAY) {
             f_goto_sleep = 1;
         }
-    } else if (rf_linking_time >= LINK_TIMEOUT) {
+    } else if (rf_linking_time >= rf_link_timeout) {
         rf_linking_time = 0;
         f_goto_sleep    = 1;
     } else if (dev_info.rf_state == RF_DISCONNECT) {

@@ -28,6 +28,7 @@ extern bool f_bat_hold;
 extern uint16_t  no_act_time;
 extern uint8_t   rf_sw_temp;
 extern uint16_t  rf_sw_press_delay;
+extern uint16_t  rf_link_timeout;
 extern user_config_t user_config;
 extern DEV_INFO_STRUCT dev_info;
 
@@ -217,6 +218,16 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 f_rgb_test_press = 1;
             } else {
                 f_rgb_test_press = 0;
+            }
+            return false;
+
+        case LINK_TO:
+            if (record->event.pressed) {
+                if (rf_link_timeout == LINK_TIMEOUT) {
+                    rf_link_timeout = LINK_TIMEOUT_ALT;
+                } else {
+                    rf_link_timeout = LINK_TIMEOUT;
+                }
             }
             return false;
 
