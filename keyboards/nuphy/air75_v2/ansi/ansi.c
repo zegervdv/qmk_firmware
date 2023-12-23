@@ -29,6 +29,7 @@ extern uint16_t  no_act_time;
 extern uint8_t   rf_sw_temp;
 extern uint16_t  rf_sw_press_delay;
 extern uint16_t  rf_link_timeout;
+extern uint16_t  rf_linking_time;
 extern user_config_t user_config;
 extern DEV_INFO_STRUCT dev_info;
 
@@ -36,6 +37,7 @@ extern DEV_INFO_STRUCT dev_info;
 /* qmk process record */
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     no_act_time = 0;
+    rf_linking_time = 0;
     switch (keycode) {
         case RF_DFU:
             if (record->event.pressed) {
