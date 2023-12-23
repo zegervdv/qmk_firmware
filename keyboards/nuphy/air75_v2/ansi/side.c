@@ -549,6 +549,11 @@ void rf_led_show(void) {
     }
 
     set_left_rgb(r_temp, g_temp, b_temp);
+    
+    //light up corresponding BT mode key
+    if (dev_info.link_mode >= LINK_BT_1 && dev_info.link_mode <= LINK_BT_3) {
+        rgb_matrix_set_color(30 - dev_info.link_mode, r_temp, g_temp, b_temp);
+    }
 }
 
 /**
@@ -557,6 +562,13 @@ void rf_led_show(void) {
 void bat_num_led(uint8_t bat_percent)
 {
     uint8_t r, g, b;
+    
+    if (bat_percent >= 100) {
+        bat_percent = 100;
+    }
+    
+    uint8_t bat_pct_tens = bat_percent / 10;
+    uint8_t bat_pct_ones = bat_percent % 10;
 
     // set color
     if (bat_percent <= 15) {
@@ -572,17 +584,15 @@ void bat_num_led(uint8_t bat_percent)
         r = 0x00; g = 0xff; b = 0x00;
     }
 
-    // set percent
-    if (bat_percent >= 1) rgb_matrix_set_color(29, r, g, b);
-    if (bat_percent > 10) rgb_matrix_set_color(28, r, g, b);
-    if (bat_percent > 20) rgb_matrix_set_color(27, r, g, b);
-    if (bat_percent > 30) rgb_matrix_set_color(26, r, g, b);
-    if (bat_percent > 40) rgb_matrix_set_color(25, r, g, b);
-    if (bat_percent > 50) rgb_matrix_set_color(24, r, g, b);
-    if (bat_percent > 60) rgb_matrix_set_color(23, r, g, b);
-    if (bat_percent > 70) rgb_matrix_set_color(22, r, g, b);
-    if (bat_percent > 80) rgb_matrix_set_color(21, r, g, b);
-    if (bat_percent > 90) rgb_matrix_set_color(20, r, g, b);
+    // set F keys for battery percentage tens (e.g, 10%)
+    for (uint8_t i = 1; i <= bat_pct_tens; i++) {
+        rgb_matrix_set_color(i, r, g, b);
+    }
+
+    // set number row for battery percentage ones (e.g., 5 in 15%)
+    for (uint8_t i = 0; i < bat_pct_ones; i++) {
+        rgb_matrix_set_color(29 - i, r, g, b);
+    }
 }
 
 void num_led_show(void)
