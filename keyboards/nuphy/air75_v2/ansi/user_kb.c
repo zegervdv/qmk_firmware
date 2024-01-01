@@ -226,7 +226,7 @@ void switch_dev_link(uint8_t mode) {
         rf_link_show_time = 0;
     } else {
         host_mode = HOST_RF_TYPE;
-        rf_driver_set();
+        host_set_driver(&rf_host_driver);
     }
 }
 
@@ -299,7 +299,7 @@ void dial_sw_scan(void) {
         f_first           = false;
 
         if (dev_info.link_mode != LINK_USB) {
-            rf_driver_set();
+            host_set_driver(&rf_host_driver);
         }
     }
 }

@@ -33,9 +33,9 @@ static void rf_send_mouse(report_mouse_t *report) {
 }
 
 static void rf_send_extra(report_extra_t *report) {
-    uart_send_system_report();
-}
-
-void rf_driver_set(void) {
-    host_set_driver(&rf_host_driver);
+    if (report->report_id == REPORT_ID_CONSUMER) {
+        uart_send_consumer_report();
+    } else if (report->report_id == REPORT_ID_SYSTEM) {
+        uart_send_system_report();
+    }
 }

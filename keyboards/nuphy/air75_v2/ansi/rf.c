@@ -469,7 +469,7 @@ void dev_sts_sync(void) {
         if (host_mode != HOST_RF_TYPE) {
             host_mode = HOST_RF_TYPE;
             break_all_key();
-            rf_driver_set();
+            host_set_driver(&rf_host_driver);
         }
 
         if (dev_info.rf_state != RF_CONNECT) {

@@ -1,3 +1,3 @@
 #pragma once
 
-void rf_driver_set(void);
+extern host_driver_t rf_host_driver;
