@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "user_kb.h"
 #include "ansi.h"
 #include "usb_main.h"
+#include "rf_driver.h"
 
 user_config_t user_config;
 DEV_INFO_STRUCT dev_info = {
@@ -48,7 +49,7 @@ host_driver_t *m_host_driver         = 0;
 
 extern bool               f_rf_new_adv_ok;
 extern report_keyboard_t *keyboard_report;
-extern report_nkro_t *nkro_report;
+extern report_nkro_t     *nkro_report;
 extern uint8_t            bitkb_report_buf[32];
 extern uint8_t            bytekb_report_buf[8];
 extern uint8_t            side_mode;
@@ -224,8 +225,7 @@ void switch_dev_link(uint8_t mode) {
         rf_link_show_time = 0;
     } else {
         host_mode = HOST_RF_TYPE;
-
-        host_set_driver(0);
+        rf_driver_set();
     }
 }
 
@@ -298,7 +298,7 @@ void dial_sw_scan(void) {
         f_first           = false;
 
         if (dev_info.link_mode != LINK_USB) {
-            host_set_driver(0);
+            rf_driver_set();
         }
     }
 }

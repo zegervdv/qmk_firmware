@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "user_kb.h"
 #include "uart.h" // qmk uart.h
 #include "ansi.h"
+#include "rf_driver.h"
 
 USART_MGR_STRUCT Usart_Mgr;
 #define RX_SBYTE    Usart_Mgr.RXDBuf[0]
@@ -468,7 +469,7 @@ void dev_sts_sync(void) {
         if (host_mode != HOST_RF_TYPE) {
             host_mode = HOST_RF_TYPE;
             break_all_key();
-            host_set_driver(0);
+            rf_driver_set();
         }
 
         if (dev_info.rf_state != RF_CONNECT) {
