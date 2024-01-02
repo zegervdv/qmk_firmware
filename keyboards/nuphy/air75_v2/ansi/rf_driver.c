@@ -11,7 +11,8 @@ static void    rf_send_extra(report_extra_t *report);
 host_driver_t  rf_host_driver = {rf_keyboard_leds, rf_send_keyboard, rf_send_nkro, rf_send_mouse, rf_send_extra};
 
 /* defined in rf.c */
-extern void uart_send_report_func(void);
+extern void uart_send_report_keyboard(void);
+extern void uart_send_report_nkro(void);
 extern void uart_send_mouse_report(void);
 extern void uart_send_consumer_report(void);
 extern void uart_send_system_report(void);
@@ -21,11 +22,13 @@ static uint8_t rf_keyboard_leds(void) {
     return 0;
 }
 static void rf_send_keyboard(report_keyboard_t *report) {
-    uart_send_report_func();
+    keyboard_protocol = 1; // is this necessary?
+    uart_send_report_keyboard();
 }
 
 static void rf_send_nkro(report_nkro_t *report) {
-    uart_send_report_func();
+    keyboard_protocol = 1; // is this necessary?
+    uart_send_report_nkro();
 }
 
 static void rf_send_mouse(report_mouse_t *report) {

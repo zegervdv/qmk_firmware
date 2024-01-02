@@ -162,6 +162,18 @@ static void uart_auto_nkey_send(uint8_t *pre_bit_report, uint8_t *now_bit_report
     }
 }
 
+void uart_send_report_keyboard(void) {
+    no_act_time               = 0;
+    keyboard_report->reserved = 0;
+    memcpy(bytekb_report_buf, &keyboard_report->mods, 8);
+    uart_send_report(CMD_RPT_BYTE_KB, bytekb_report_buf, 8);
+}
+
+void uart_send_report_nkro(void) {
+    no_act_time = 0;
+    uart_auto_nkey_send(bitkb_report_buf, &nkro_report->mods, NKRO_REPORT_BITS + 1);
+    memcpy(&bitkb_report_buf[0], &nkro_report->mods, NKRO_REPORT_BITS+1);
+}
 
 /**
  * @brief  Uart send keys report.
