@@ -92,7 +92,6 @@ void uart_send_system_report(report_extra_t *report) {
 /**
  * @brief Uart auto nkey send
  */
-bool f_f_bit_kb_act = 0;
 static void uart_auto_nkey_send(uint8_t *pre_bit_report, uint8_t *now_bit_report, uint8_t size) {
     uint8_t i, j, byte_index;
     uint8_t change_mask, offset_mask;
@@ -144,7 +143,6 @@ static void uart_auto_nkey_send(uint8_t *pre_bit_report, uint8_t *now_bit_report
     }
 
     if (f_bit_send) {
-        f_f_bit_kb_act = 1;
         uart_send_report(CMD_RPT_BIT_KB, uart_bit_report_buf, size);
     }
 
@@ -177,47 +175,6 @@ void uart_send_report_nkro(report_nkro_t *report) {
     uart_auto_nkey_send(bitkb_report_buf, &nkro_report->mods, NKRO_REPORT_BITS + 1);
     memcpy(&bitkb_report_buf[0], &nkro_report->mods, NKRO_REPORT_BITS + 1);
 }
-
-/**
- * @brief  Uart send keys report.
- * @note Call in host.c
- */
-/*
-void uart_send_report_func(void)
-{
-    static uint32_t interval_timer = 0;
-
-    if (dev_info.link_mode == LINK_USB) return;
-    keyboard_protocol          = 1;
-
-    if(keymap_config.nkro)
-    nkro_report->mods = get_mods() | get_weak_mods();
-
-    if ((dev_info.sys_sw_state == SYS_SW_MAC) && (memcmp(bytekb_report_buf, &keyboard_report->mods, 8))) {
-        no_act_time             = 0;
-        keyboard_report->reserved = 0;
-        memcpy(bytekb_report_buf, &keyboard_report->mods, 8);
-        uart_send_report(CMD_RPT_BYTE_KB, bytekb_report_buf, 8);
-    }
-    else if ((dev_info.sys_sw_state == SYS_SW_WIN) && (memcmp(bitkb_report_buf, &nkro_report->mods, NKRO_REPORT_BITS+1))) {
-        no_act_time = 0;
-        uart_auto_nkey_send(bitkb_report_buf, &nkro_report->mods, NKRO_REPORT_BITS+1);
-        memcpy(&bitkb_report_buf[0], &nkro_report->mods, NKRO_REPORT_BITS+1);
-    }
-    else if (timer_elapsed32(interval_timer) > 100) {
-        interval_timer = timer_read32();
-        if (no_act_time <= 200) {
-            uart_send_report(CMD_RPT_BYTE_KB, bytekb_report_buf, 8);
-
-            if(f_f_bit_kb_act)
-            uart_send_report(CMD_RPT_BIT_KB, uart_bit_report_buf, 16);
-        }
-        else {
-            f_f_bit_kb_act = 0;
-        }
-    }
-}
-*/
 
 /**
  * @brief  Parsing the data received from the RF module.

@@ -265,8 +265,6 @@ void housekeeping_task_user(void) {
 
     uart_receive_pro();
 
-    //uart_send_report_func();
-
     dev_sts_sync();
 
     long_press_key();
