@@ -36,11 +36,9 @@ bool f_rf_hand_ok      = 0;
 bool f_goto_sleep      = 0;
 bool f_wakeup_prepare  = 0;
 
-uint8_t  uart_bit_report_buf[32] = {0};
 uint8_t  func_tab[32]            = {0};
 uint8_t  bitkb_report_buf[32]    = {0};
 uint8_t  bytekb_report_buf[8]    = {0};
-uint8_t  mouse_report_buf[5]     = {0};
 uint16_t conkb_report            = 0;
 uint16_t syskb_report            = 0;
 uint8_t  sync_lost               = 0;
@@ -56,7 +54,6 @@ extern uint16_t        no_act_time;
 extern bool            f_send_channel;
 extern bool            f_dial_sw_init_ok;
 
-report_mouse_t mousekey_get_report(void);
 void           uart_init(uint32_t baud); // qmk uart.c
 void           uart_send_report(uint8_t report_type, uint8_t *report_buf, uint8_t report_size);
 void           UART_Send_Bytes(uint8_t *Buffer, uint32_t Length);
@@ -67,46 +64,42 @@ uint16_t       host_last_consumer_usage(void);
 
 /**
  * @brief  Uart send consumer keys report.
- * @note Call in host.c
+ * @note Call in rf_driver.c
  */
-void uart_send_consumer_report(void) {
-    no_act_time  = 0;
-    conkb_report = host_last_consumer_usage();
-    uart_send_report(CMD_RPT_CONSUME, (uint8_t *)(&conkb_report), 2);
+void uart_send_consumer_report(report_extra_t *report) {
+    no_act_time = 0;
+    uart_send_report(CMD_RPT_CONSUME, (uint8_t *)(&report->usage), 2);
 }
 
 /**
  * @brief  Uart send mouse keys report.
- * @note Call in host.c
+ * @note Call in rf_driver.c
  */
-void uart_send_mouse_report(void) {
-    report_mouse_t mouse_report = mousekey_get_report();
-
+void uart_send_mouse_report(report_mouse_t *report) {
     no_act_time = 0;
-    memcpy(mouse_report_buf, &mouse_report.buttons, 5);
-    uart_send_report(CMD_RPT_MS, mouse_report_buf, 5);
+    uart_send_report(CMD_RPT_MS, &report->buttons, 5);
 }
 
 /**
  * @brief  Uart send system keys report.
- * @note Call in host.c
+ * @note Call in rf_driver.c
  */
-void uart_send_system_report(void) {
-    no_act_time  = 0;
-    syskb_report = host_last_system_usage();
-    uart_send_report(CMD_RPT_SYS, (uint8_t *)(&syskb_report), 2);
+void uart_send_system_report(report_extra_t *report) {
+    no_act_time = 0;
+    uart_send_report(CMD_RPT_SYS, (uint8_t *)(&report->usage), 2);
 }
 
 /**
  * @brief Uart auto nkey send
  */
 bool f_f_bit_kb_act = 0;
-static void uart_auto_nkey_send(uint8_t *pre_bit_report, uint8_t *now_bit_report, uint8_t size)
-{
+static void uart_auto_nkey_send(uint8_t *pre_bit_report, uint8_t *now_bit_report, uint8_t size) {
     uint8_t i, j, byte_index;
     uint8_t change_mask, offset_mask;
-    uint8_t key_code = 0;
-    bool f_byte_send = 0, f_bit_send = 0;
+    uint8_t key_code    = 0;
+    bool    f_byte_send = 0, f_bit_send = 0;
+    bool    break_key               = 0;
+    uint8_t uart_bit_report_buf[32] = {0};
 
     if (pre_bit_report[0] ^ now_bit_report[0]) {
         bytekb_report_buf[0] = now_bit_report[0];
@@ -126,8 +119,6 @@ static void uart_auto_nkey_send(uint8_t *pre_bit_report, uint8_t *now_bit_report
                             break;
                         }
                     }
-
-
                     if (byte_index >= 8) {
                         uart_bit_report_buf[i] |= offset_mask;
                         f_bit_send = 1;
@@ -138,13 +129,13 @@ static void uart_auto_nkey_send(uint8_t *pre_bit_report, uint8_t *now_bit_report
                             bytekb_report_buf[byte_index] = 0;
                             f_byte_send                   = 1;
                             break;
-                            ;
                         }
                     }
                     if (byte_index >= 8) {
                         uart_bit_report_buf[i] &= ~offset_mask;
                         f_bit_send = 1;
                     }
+                    break_key = 1;
                 }
             }
             key_code++;
@@ -154,31 +145,44 @@ static void uart_auto_nkey_send(uint8_t *pre_bit_report, uint8_t *now_bit_report
 
     if (f_bit_send) {
         f_f_bit_kb_act = 1;
-        uart_send_report(CMD_RPT_BIT_KB, uart_bit_report_buf, 16);
+        uart_send_report(CMD_RPT_BIT_KB, uart_bit_report_buf, size);
     }
 
     if (f_byte_send) {
         uart_send_report(CMD_RPT_BYTE_KB, bytekb_report_buf, 8);
     }
+
+    if (break_key) {
+        // attempts to fix stuck keys not cancelling.
+        // wait 1ms then fire the report again.
+        wait_ms(1);
+        if (f_bit_send) {
+            uart_send_report(CMD_RPT_BIT_KB, uart_bit_report_buf, size);
+        }
+
+        if (f_byte_send) {
+            uart_send_report(CMD_RPT_BYTE_KB, bytekb_report_buf, 8);
+        }
+    }
 }
 
-void uart_send_report_keyboard(void) {
-    no_act_time               = 0;
-    keyboard_report->reserved = 0;
-    memcpy(bytekb_report_buf, &keyboard_report->mods, 8);
-    uart_send_report(CMD_RPT_BYTE_KB, bytekb_report_buf, 8);
+void uart_send_report_keyboard(report_keyboard_t *report) {
+    no_act_time      = 0;
+    report->reserved = 0;
+    uart_send_report(CMD_RPT_BYTE_KB, &report->mods, 8);
 }
 
-void uart_send_report_nkro(void) {
+void uart_send_report_nkro(report_nkro_t *report) {
     no_act_time = 0;
     uart_auto_nkey_send(bitkb_report_buf, &nkro_report->mods, NKRO_REPORT_BITS + 1);
-    memcpy(&bitkb_report_buf[0], &nkro_report->mods, NKRO_REPORT_BITS+1);
+    memcpy(&bitkb_report_buf[0], &nkro_report->mods, NKRO_REPORT_BITS + 1);
 }
 
 /**
  * @brief  Uart send keys report.
  * @note Call in host.c
  */
+/*
 void uart_send_report_func(void)
 {
     static uint32_t interval_timer = 0;
@@ -213,6 +217,7 @@ void uart_send_report_func(void)
         }
     }
 }
+*/
 
 /**
  * @brief  Parsing the data received from the RF module.

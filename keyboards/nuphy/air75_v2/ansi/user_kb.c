@@ -175,7 +175,7 @@ void long_press_key(void) {
  * @brief  Release all keys, clear keyboard report.
  */
 void break_all_key(void) {
-    uint8_t report_buf[16];
+    uint8_t report_buf[NKRO_REPORT_BITS + 1];
     bool    nkro_temp = keymap_config.nkro;
 
     clear_weak_mods();
@@ -183,8 +183,8 @@ void break_all_key(void) {
     clear_keyboard();
 
     keymap_config.nkro = 1;
-    memset(keyboard_report, 0, sizeof(report_keyboard_t));
-    host_keyboard_send(keyboard_report);
+    memset(nkro_report, 0, sizeof(report_nkro_t));
+    host_nkro_send(nkro_report);
     wait_ms(10);
 
     keymap_config.nkro = 0;
@@ -195,15 +195,12 @@ void break_all_key(void) {
     keymap_config.nkro = nkro_temp;
 
     if (dev_info.link_mode != LINK_USB) {
-        memset(report_buf, 0, 16);
-        uart_send_report(CMD_RPT_BIT_KB, report_buf, 16);
+        memset(report_buf, 0, NKRO_REPORT_BITS + 1);
+        uart_send_report(CMD_RPT_BIT_KB, report_buf, NKRO_REPORT_BITS + 1);
         wait_ms(10);
         uart_send_report(CMD_RPT_BYTE_KB, report_buf, 8);
         wait_ms(10);
     }
-
-    memset(bitkb_report_buf, 0, sizeof(bitkb_report_buf));
-    memset(bytekb_report_buf, 0, sizeof(bytekb_report_buf));
 }
 
 /**
