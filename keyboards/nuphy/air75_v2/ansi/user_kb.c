@@ -41,7 +41,6 @@ uint8_t        rf_sw_temp            = 0;
 uint8_t        host_mode             = 0;
 uint16_t       rf_linking_time       = 0;
 uint16_t       rf_link_show_time     = 0;
-uint16_t       rf_link_timeout       = LINK_TIMEOUT;
 uint16_t       no_act_time           = 0;
 uint16_t       dev_reset_press_delay = 0;
 uint16_t       rf_sw_press_delay     = 0;
@@ -196,7 +195,7 @@ void break_all_key(void) {
 
     if (dev_info.link_mode != LINK_USB) {
         memset(report_buf, 0, NKRO_REPORT_BITS + 1);
-        uart_send_report(CMD_RPT_BIT_KB, report_buf, NKRO_REPORT_BITS + 1);
+        uart_send_report(CMD_RPT_BIT_KB, report_buf, 16);
         wait_ms(10);
         uart_send_report(CMD_RPT_BYTE_KB, report_buf, 8);
         wait_ms(10);
@@ -403,12 +402,13 @@ void londing_eeprom_data(void) {
         user_config.ee_side_rgb             = side_rgb;
         user_config.ee_side_colour          = side_colour;
         user_config.sleep_enable            = true;
+        user_config.rf_link_timeout         = LINK_TIMEOUT;
         eeconfig_update_user_datablock(&user_config);
     } else {
-        side_mode   = user_config.ee_side_mode;
-        side_light  = user_config.ee_side_light;
-        side_speed  = user_config.ee_side_speed;
-        side_rgb    = user_config.ee_side_rgb;
-        side_colour = user_config.ee_side_colour;
+        side_mode       = user_config.ee_side_mode;
+        side_light      = user_config.ee_side_light;
+        side_speed      = user_config.ee_side_speed;
+        side_rgb        = user_config.ee_side_rgb;
+        side_colour     = user_config.ee_side_colour;
     }
 }

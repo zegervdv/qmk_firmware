@@ -779,6 +779,7 @@ void device_reset_init(void) {
     user_config.ee_side_rgb             = side_rgb;
     user_config.ee_side_colour          = side_colour;
     user_config.sleep_enable            = true;
+    user_config.rf_link_timeout         = LINK_TIMEOUT;
     eeconfig_update_user_datablock(&user_config);
 }
 

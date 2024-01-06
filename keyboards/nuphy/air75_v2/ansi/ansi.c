@@ -28,7 +28,6 @@ extern bool f_bat_hold;
 extern uint16_t  no_act_time;
 extern uint8_t   rf_sw_temp;
 extern uint16_t  rf_sw_press_delay;
-extern uint16_t  rf_link_timeout;
 extern uint16_t  rf_linking_time;
 extern user_config_t user_config;
 extern DEV_INFO_STRUCT dev_info;
@@ -225,11 +224,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
         case LINK_TO:
             if (record->event.pressed) {
-                if (rf_link_timeout == LINK_TIMEOUT) {
-                    rf_link_timeout = LINK_TIMEOUT_ALT;
+                if (user_config.rf_link_timeout == LINK_TIMEOUT) {
+                    user_config.rf_link_timeout = LINK_TIMEOUT_ALT;
                 } else {
-                    rf_link_timeout = LINK_TIMEOUT;
+                    user_config.rf_link_timeout = LINK_TIMEOUT;
                 }
+                eeconfig_update_user_datablock(&user_config);
             }
             return false;
 

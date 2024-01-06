@@ -97,7 +97,6 @@ static void uart_auto_nkey_send(uint8_t *pre_bit_report, uint8_t *now_bit_report
     uint8_t change_mask, offset_mask;
     uint8_t key_code    = 0;
     bool    f_byte_send = 0, f_bit_send = 0;
-    bool    break_key               = 0;
     uint8_t uart_bit_report_buf[32] = {0};
 
     if (pre_bit_report[0] ^ now_bit_report[0]) {
@@ -134,7 +133,6 @@ static void uart_auto_nkey_send(uint8_t *pre_bit_report, uint8_t *now_bit_report
                         uart_bit_report_buf[i] &= ~offset_mask;
                         f_bit_send = 1;
                     }
-                    break_key = 1;
                 }
             }
             key_code++;
@@ -142,32 +140,27 @@ static void uart_auto_nkey_send(uint8_t *pre_bit_report, uint8_t *now_bit_report
         }
     }
 
-    if (f_bit_send) {
-        uart_send_report(CMD_RPT_BIT_KB, uart_bit_report_buf, size);
-    }
-
-    if (f_byte_send) {
-        uart_send_report(CMD_RPT_BYTE_KB, bytekb_report_buf, 8);
-    }
-
-    if (break_key) {
-        // attempts to fix stuck keys not cancelling.
-        // wait 1ms then fire the report again.
-        wait_ms(1);
+    // send the report twice, should reduce chances of dropped/stuck keys.
+    for (uint8_t i = 1; i <= 2; i++) {
         if (f_bit_send) {
-            uart_send_report(CMD_RPT_BIT_KB, uart_bit_report_buf, size);
+            uart_send_report(CMD_RPT_BIT_KB, uart_bit_report_buf, 16);
         }
 
         if (f_byte_send) {
             uart_send_report(CMD_RPT_BYTE_KB, bytekb_report_buf, 8);
         }
+        if (i == 1) wait_ms(1); // make a small pause.
     }
 }
 
 void uart_send_report_keyboard(report_keyboard_t *report) {
     no_act_time      = 0;
     report->reserved = 0;
-    uart_send_report(CMD_RPT_BYTE_KB, &report->mods, 8);
+    // send the report twice, should reduce chances of dropped/stuck keys.
+    for (uint8_t i = 1; i <= 2; i++) {
+        uart_send_report(CMD_RPT_BYTE_KB, &report->mods, 8);
+        if (i == 1) wait_ms(1); // make a small pause.
+    }
 }
 
 void uart_send_report_nkro(report_nkro_t *report) {

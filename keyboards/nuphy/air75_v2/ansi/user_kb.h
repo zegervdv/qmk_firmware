@@ -129,23 +129,22 @@ typedef struct
     uint8_t sys_sw_state;
 } DEV_INFO_STRUCT;
 
-typedef struct
-{
-    uint8_t default_brightness_flag;
-    uint8_t ee_side_mode;
-    uint8_t ee_side_light;
-    uint8_t ee_side_speed;
-    uint8_t ee_side_rgb;
-    uint8_t ee_side_colour;
-    uint8_t sleep_enable;
-    uint8_t retain1;
-    uint8_t retain2;
+typedef struct {
+    uint8_t  default_brightness_flag;
+    uint8_t  ee_side_mode;
+    uint8_t  ee_side_light;
+    uint8_t  ee_side_speed;
+    uint8_t  ee_side_rgb;
+    uint8_t  ee_side_colour;
+    uint8_t  sleep_enable;
+    uint16_t rf_link_timeout;
+    uint8_t  retain1;
+    uint8_t  retain2;
 } user_config_t;
 
 void    dev_sts_sync(void);
 void    rf_uart_init(void);
 void    rf_device_init(void);
-void    uart_send_report_func(void);
 void    uart_receive_pro(void);
 void    uart_send_report(uint8_t report_type, uint8_t *report_buf, uint8_t report_size);
 void    side_speed_contol(uint8_t dir);

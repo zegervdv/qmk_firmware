@@ -99,7 +99,7 @@ void sleep_handle(void) {
         if (no_act_time >= SLEEP_TIME_DELAY) {
             f_goto_sleep = 1;
         }
-    } else if (rf_linking_time >= rf_link_timeout) {
+    } else if (rf_linking_time >= user_config.rf_link_timeout) {
         rf_linking_time = 0;
         f_goto_sleep    = 1;
     } else if (dev_info.rf_state == RF_DISCONNECT) {
