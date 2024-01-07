@@ -31,6 +31,29 @@ extern bool            f_wakeup_prepare;
 
 uint8_t uart_send_cmd(uint8_t cmd, uint8_t ack_cnt, uint8_t delayms);
 
+void deep_sleep_handle(void) {
+    enter_deep_sleep(); // puts the board in WFI mode and pauses the MCU
+    exit_deep_sleep();  // This gets called when there is an interrupt (wake) event.
+
+    // Scan and update software state.
+    // These are the same functions in ansi.c, call it here to determine board state
+    uart_receive_pro();
+    dev_sts_sync();
+    dial_sw_scan();
+
+    no_act_time = 0;
+
+    /*  Call the QMK keyboard life cycle to preserve first pressed button on wakeup.
+        If the matrix scan happens fast enough it will catch the key press and should send it.
+        If RF is disconnected still, the keypress is lost but w/e. You can just press it again...
+    */
+    keyboard_task();
+    /*  Clear the key after. This probably causes 2 keystrokes but not a big deal for me.
+        Without doing this, the key get's stuck for some reason.
+    */
+    break_all_key();
+}
+
 /**
  * @brief  Sleep Handle.
  */
@@ -49,7 +72,8 @@ void sleep_handle(void) {
         bool deep_sleep = 0;
         if (user_config.sleep_enable) {
             deep_sleep = 1;
-            if (dev_info.rf_charge & 0x01) { // light sleep if charging
+            // light sleep if charging? Charging event might keep waking MCU. To be confirmed...
+            if (dev_info.rf_charge & 0x01) {
                 deep_sleep = 0;
             }
             // or if it's in USB mode but USB state is suspended
@@ -60,9 +84,8 @@ void sleep_handle(void) {
         }
 
         if (deep_sleep) {
-            enter_deep_sleep();
-            exit_deep_sleep(); // interrupt wake if deep sleep
-            return;            // don't need to do anything else
+            deep_sleep_handle();
+            return; // don't need to do anything else
         } else {
             enter_light_sleep();
             f_wakeup_prepare = 1;
@@ -70,12 +93,22 @@ void sleep_handle(void) {
     }
 
     // wakeup check
-    if (f_wakeup_prepare && (no_act_time < 10)) {
-        f_wakeup_prepare = 0;
-        exit_light_sleep(); // we only arrive here on light sleep.
+    // we only arrive here on light sleep.
+    if (f_wakeup_prepare) {
+        if (no_act_time < 10) { // activity wake up
+            f_wakeup_prepare = 0;
+            exit_light_sleep();
+        }
+        // No longer charging? Go deep sleep.
+        // TODO: don't really know true charge bit logic. I'm just guessing here.
+        else if ((dev_info.rf_charge & 0x01) == 0) {
+            f_wakeup_prepare = 0;
+            deep_sleep_handle();
+            return;
+        }
     }
 
-    // sleep check
+    // sleep check, won't reach here on deep sleep.
     if (f_goto_sleep || f_wakeup_prepare) return;
     if (dev_info.link_mode == LINK_USB) {
         if (USB_DRIVER.state == USB_SUSPENDED) {

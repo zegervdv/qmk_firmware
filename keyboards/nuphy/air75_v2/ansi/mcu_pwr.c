@@ -7,8 +7,6 @@
 //------------------------------------------------
 // 外部变量
 extern DEV_INFO_STRUCT dev_info;
-extern bool            f_dev_sleep_enable;
-extern uint16_t        no_act_time;
 
 bool f_usb_deinit = 0;
 
@@ -225,14 +223,6 @@ void exit_deep_sleep(void) {
     // 发送一个握手唤醒RF
     uart_send_cmd(CMD_HAND, 0, 1); // 握手
 
-    no_act_time = 0;
-
-    // Scan and update software state.
-    // These are the same functions in ansi.c, call it here to determine board state
-    uart_receive_pro();
-    dev_sts_sync();
-    dial_sw_scan();
-
     // Should re-init USB regardless probably if it was deinitialized.
     if (f_usb_deinit) {
         // USB远程唤醒
@@ -240,11 +230,6 @@ void exit_deep_sleep(void) {
         restart_usb_driver(&USB_DRIVER);
         f_usb_deinit = 0;
     }
-
-    // Call the QMK keyboard life cycle to preserve first pressed button on wakeup.
-    // If the matrix scan somehow catches the key press it should send it.
-    keyboard_task();
-    break_all_key(); // clear the key after. This probably causes 2 keystrokes but not a big deal for me.
 }
 
 /**
