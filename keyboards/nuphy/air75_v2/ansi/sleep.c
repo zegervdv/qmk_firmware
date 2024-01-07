@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ansi.h"
 #include "hal_usb.h"
 #include "usb_main.h"
+#include "mcu_pwr.h"
 
 extern user_config_t   user_config;
 extern DEV_INFO_STRUCT dev_info;
@@ -34,57 +35,48 @@ uint8_t uart_send_cmd(uint8_t cmd, uint8_t ack_cnt, uint8_t delayms);
  * @brief  Sleep Handle.
  */
 void sleep_handle(void) {
-    static uint32_t delay_step_timer = 0;
+    static uint32_t delay_step_timer     = 0;
     static uint8_t  usb_suspend_debounce = 0;
-    static uint32_t rf_disconnect_time = 0;
+    static uint32_t rf_disconnect_time   = 0;
 
     /* 50ms interval */
     if (timer_elapsed32(delay_step_timer) < 50) return;
     delay_step_timer = timer_read32();
 
-    // sleep process
+    // sleep process;
     if (f_goto_sleep) {
-        f_goto_sleep = 0;
-
-        if(user_config.sleep_enable) {
-            if (dev_info.rf_state == RF_CONNECT)
-                uart_send_cmd(CMD_SET_CONFIG, 5, 5);
-            else
-                uart_send_cmd(CMD_SLEEP, 5, 5);
-
-            // power off led
-            setPinOutput(DC_BOOST_PIN);
-            writePinLow(DC_BOOST_PIN);
-
-            setPinInput(DRIVER_LED_CS_PIN);
-            setPinInput(DRIVER_SIDE_CS_PIN);
+        f_goto_sleep    = 0;
+        bool deep_sleep = 0;
+        if (user_config.sleep_enable) {
+            deep_sleep = 1;
+            if (dev_info.rf_charge & 0x01) { // light sleep if charging
+                deep_sleep = 0;
+            }
+            // or if it's in USB mode but USB state is suspended
+            // TODO: How to detect if USB is unplugged? I only use RF so not a big deal I guess...
+            else if (dev_info.link_mode == LINK_USB && USB_DRIVER.state == USB_SUSPENDED) {
+                deep_sleep = 0;
+            }
         }
 
-        f_wakeup_prepare = 1;
+        if (deep_sleep) {
+            enter_deep_sleep();
+            exit_deep_sleep(); // interrupt wake if deep sleep
+            return;            // don't need to do anything else
+        } else {
+            enter_light_sleep();
+            f_wakeup_prepare = 1;
+        }
     }
 
     // wakeup check
     if (f_wakeup_prepare && (no_act_time < 10)) {
         f_wakeup_prepare = 0;
-
-        writePinHigh(DC_BOOST_PIN);
-
-        setPinOutput(DRIVER_LED_CS_PIN);
-        writePinLow(DRIVER_LED_CS_PIN);
-        setPinOutput(DRIVER_SIDE_CS_PIN);
-        writePinLow(DRIVER_SIDE_CS_PIN);
-
-        uart_send_cmd(CMD_HAND, 0, 1);
-
-        if (dev_info.link_mode == LINK_USB) {
-            usb_lld_wakeup_host(&USB_DRIVER);
-            restart_usb_driver(&USB_DRIVER);
-        }
+        exit_light_sleep(); // we only arrive here on light sleep.
     }
 
     // sleep check
-    if (f_goto_sleep || f_wakeup_prepare)
-        return;
+    if (f_goto_sleep || f_wakeup_prepare) return;
     if (dev_info.link_mode == LINK_USB) {
         if (USB_DRIVER.state == USB_SUSPENDED) {
             usb_suspend_debounce++;
@@ -106,7 +98,7 @@ void sleep_handle(void) {
         rf_disconnect_time++;
         if (rf_disconnect_time > 5 * 20) {
             rf_disconnect_time = 0;
-            f_goto_sleep = 1;
+            f_goto_sleep       = 1;
         }
     }
 }
