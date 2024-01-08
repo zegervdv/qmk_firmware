@@ -149,7 +149,7 @@ static void uart_auto_nkey_send(uint8_t *pre_bit_report, uint8_t *now_bit_report
         if (f_byte_send) {
             uart_send_report(CMD_RPT_BYTE_KB, bytekb_report_buf, 8);
         }
-        if (i == 1) wait_ms(1); // make a small pause.
+        if (i == 1) wait_us(400); // make a small pause. uart buffer should clear by now
     }
 }
 
@@ -159,7 +159,7 @@ void uart_send_report_keyboard(report_keyboard_t *report) {
     // send the report twice, should reduce chances of dropped/stuck keys.
     for (uint8_t i = 1; i <= 2; i++) {
         uart_send_report(CMD_RPT_BYTE_KB, &report->mods, 8);
-        if (i == 1) wait_ms(1); // make a small pause.
+        if (i == 1) wait_us(400); // make a small pause. uart buffer should clear by now
     }
 }
 
