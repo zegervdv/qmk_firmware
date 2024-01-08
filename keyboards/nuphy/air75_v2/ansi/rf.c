@@ -60,34 +60,6 @@ void           UART_Send_Bytes(uint8_t *Buffer, uint32_t Length);
 uint8_t        get_checksum(uint8_t *buf, uint8_t len);
 void           uart_receive_pro(void);
 void           break_all_key(void);
-uint16_t       host_last_consumer_usage(void);
-
-/**
- * @brief  Uart send consumer keys report.
- * @note Call in rf_driver.c
- */
-void uart_send_consumer_report(report_extra_t *report) {
-    no_act_time = 0;
-    uart_send_report(CMD_RPT_CONSUME, (uint8_t *)(&report->usage), 2);
-}
-
-/**
- * @brief  Uart send mouse keys report.
- * @note Call in rf_driver.c
- */
-void uart_send_mouse_report(report_mouse_t *report) {
-    no_act_time = 0;
-    uart_send_report(CMD_RPT_MS, &report->buttons, 5);
-}
-
-/**
- * @brief  Uart send system keys report.
- * @note Call in rf_driver.c
- */
-void uart_send_system_report(report_extra_t *report) {
-    no_act_time = 0;
-    uart_send_report(CMD_RPT_SYS, (uint8_t *)(&report->usage), 2);
-}
 
 /**
  * @brief Uart auto nkey send
@@ -153,6 +125,37 @@ static void uart_auto_nkey_send(uint8_t *pre_bit_report, uint8_t *now_bit_report
     }
 }
 
+/**
+ * @brief  Uart send consumer keys report.
+ * @note Call in rf_driver.c
+ */
+void uart_send_consumer_report(report_extra_t *report) {
+    no_act_time = 0;
+    uart_send_report(CMD_RPT_CONSUME, (uint8_t *)(&report->usage), 2);
+}
+
+/**
+ * @brief  Uart send mouse keys report.
+ * @note Call in rf_driver.c
+ */
+void uart_send_mouse_report(report_mouse_t *report) {
+    no_act_time = 0;
+    uart_send_report(CMD_RPT_MS, &report->buttons, 5);
+}
+
+/**
+ * @brief  Uart send system keys report.
+ * @note Call in rf_driver.c
+ */
+void uart_send_system_report(report_extra_t *report) {
+    no_act_time = 0;
+    uart_send_report(CMD_RPT_SYS, (uint8_t *)(&report->usage), 2);
+}
+
+/**
+ * @brief  Uart send byte keys report.
+ * @note Call in rf_driver.c
+ */
 void uart_send_report_keyboard(report_keyboard_t *report) {
     no_act_time      = 0;
     report->reserved = 0;
@@ -163,6 +166,10 @@ void uart_send_report_keyboard(report_keyboard_t *report) {
     }
 }
 
+/**
+ * @brief  Uart send bit keys report.
+ * @note Call in rf_driver.c
+ */
 void uart_send_report_nkro(report_nkro_t *report) {
     no_act_time = 0;
     uart_auto_nkey_send(bitkb_report_buf, &nkro_report->mods, NKRO_REPORT_BITS + 1);
