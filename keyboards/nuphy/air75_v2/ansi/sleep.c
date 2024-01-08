@@ -35,23 +35,17 @@ void deep_sleep_handle(void) {
     enter_deep_sleep(); // puts the board in WFI mode and pauses the MCU
     exit_deep_sleep();  // This gets called when there is an interrupt (wake) event.
 
-    // Scan and update software state.
-    // These are the same functions in ansi.c, call it here to determine board state
-    uart_receive_pro();
-    dev_sts_sync();
-    dial_sw_scan();
+    // Clear the keyboard for new QMK life cycle to handle.
+    clear_weak_mods();
+    clear_mods();
+    clear_keyboard();
 
-    no_act_time = 0;
-
-    /*  Call the QMK keyboard life cycle to preserve first pressed button on wakeup.
-        If the matrix scan happens fast enough it will catch the key press and should send it.
-        If RF is disconnected still, the keypress is lost but w/e. You can just press it again...
+    /* If RF is not connected anymore you would lose the first keystroke.
+       This is expected behavior as the connection is not there.
+       Very quick taps on the first key (the one that wakes the board) has a
+       very high chance of getting stuck for some reason in the regular QMK lifecycle.
+       So... just press and release normally if you don't want problems. Or spam some keys.
     */
-    keyboard_task();
-    /*  Clear the key after. This probably causes 2 keystrokes but not a big deal for me.
-        Without doing this, the key get's stuck for some reason.
-    */
-    break_all_key();
 }
 
 /**
