@@ -21,11 +21,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "rf_driver.h"
 
 USART_MGR_STRUCT Usart_Mgr;
-#define RX_SBYTE    Usart_Mgr.RXDBuf[0]
-#define RX_CMD      Usart_Mgr.RXDBuf[1]
-#define RX_ACK      Usart_Mgr.RXDBuf[2]
-#define RX_LEN      Usart_Mgr.RXDBuf[3]
-#define RX_DAT      Usart_Mgr.RXDBuf[4]
+#define RX_SBYTE Usart_Mgr.RXDBuf[0]
+#define RX_CMD Usart_Mgr.RXDBuf[1]
+#define RX_ACK Usart_Mgr.RXDBuf[2]
+#define RX_LEN Usart_Mgr.RXDBuf[3]
+#define RX_DAT Usart_Mgr.RXDBuf[4]
 
 bool f_uart_ack        = 0;
 bool f_rf_read_data_ok = 0;
@@ -35,7 +35,10 @@ bool f_rf_reset        = 0;
 bool f_rf_hand_ok      = 0;
 bool f_goto_sleep      = 0;
 bool f_wakeup_prepare  = 0;
+bool f_bit_send        = 0;
+bool f_byte_send       = 0;
 
+uint8_t  uart_bit_report_buf[32] = {0};
 uint8_t  func_tab[32]            = {0};
 uint8_t  bitkb_report_buf[32]    = {0};
 uint8_t  bytekb_report_buf[8]    = {0};
@@ -54,12 +57,12 @@ extern uint16_t        no_act_time;
 extern bool            f_send_channel;
 extern bool            f_dial_sw_init_ok;
 
-void           uart_init(uint32_t baud); // qmk uart.c
-void           uart_send_report(uint8_t report_type, uint8_t *report_buf, uint8_t report_size);
-void           UART_Send_Bytes(uint8_t *Buffer, uint32_t Length);
-uint8_t        get_checksum(uint8_t *buf, uint8_t len);
-void           uart_receive_pro(void);
-void           break_all_key(void);
+void    uart_init(uint32_t baud); // qmk uart.c
+void    uart_send_report(uint8_t report_type, uint8_t *report_buf, uint8_t report_size);
+void    UART_Send_Bytes(uint8_t *Buffer, uint32_t Length);
+uint8_t get_checksum(uint8_t *buf, uint8_t len);
+void    uart_receive_pro(void);
+void    break_all_key(void);
 
 /**
  * @brief Uart auto nkey send
@@ -67,9 +70,10 @@ void           break_all_key(void);
 static void uart_auto_nkey_send(uint8_t *pre_bit_report, uint8_t *now_bit_report, uint8_t size) {
     uint8_t i, j, byte_index;
     uint8_t change_mask, offset_mask;
-    uint8_t key_code    = 0;
-    bool    f_byte_send = 0, f_bit_send = 0;
-    uint8_t uart_bit_report_buf[32] = {0};
+    uint8_t key_code = 0;
+
+    f_byte_send = 0;
+    f_bit_send  = 0;
 
     if (pre_bit_report[0] ^ now_bit_report[0]) {
         bytekb_report_buf[0] = now_bit_report[0];
@@ -112,16 +116,41 @@ static void uart_auto_nkey_send(uint8_t *pre_bit_report, uint8_t *now_bit_report
         }
     }
 
-    // send the report twice, should reduce chances of dropped/stuck keys.
-    for (uint8_t i = 1; i <= 2; i++) {
-        if (f_bit_send) {
-            uart_send_report(CMD_RPT_BIT_KB, uart_bit_report_buf, 16);
-        }
+    if (f_bit_send) {
+        uart_send_report(CMD_RPT_BIT_KB, uart_bit_report_buf, 16);
+    }
 
-        if (f_byte_send) {
-            uart_send_report(CMD_RPT_BYTE_KB, bytekb_report_buf, 8);
+    if (f_byte_send) {
+        uart_send_report(CMD_RPT_BYTE_KB, bytekb_report_buf, 8);
+    }
+}
+
+/**
+ * @brief  Uart send keys report.
+ * @note   Repeats the last sent key reports to reduce stuck keys once every 50ms if no activity.
+ */
+void uart_send_report_repeat(void) {
+    static uint32_t interval_timer = 0;
+
+    if (dev_info.link_mode == LINK_USB) return;
+    keyboard_protocol = 1;
+
+    if (timer_elapsed32(interval_timer) > 50) {
+        interval_timer = timer_read32();
+        if (no_act_time <= 200) {
+            if (f_byte_send) {
+                uart_send_report(CMD_RPT_BYTE_KB, bytekb_report_buf, 8);
+                wait_us(200);
+            }
+
+            if (f_bit_send) {
+                uart_send_report(CMD_RPT_BIT_KB, uart_bit_report_buf, 16);
+                wait_us(200);
+            }
+        } else {
+            f_byte_send = 0;
+            f_bit_send  = 0;
         }
-        if (i == 1) wait_us(400); // make a small pause. uart buffer should clear by now
     }
 }
 
@@ -159,11 +188,9 @@ void uart_send_system_report(report_extra_t *report) {
 void uart_send_report_keyboard(report_keyboard_t *report) {
     no_act_time      = 0;
     report->reserved = 0;
-    // send the report twice, should reduce chances of dropped/stuck keys.
-    for (uint8_t i = 1; i <= 2; i++) {
-        uart_send_report(CMD_RPT_BYTE_KB, &report->mods, 8);
-        if (i == 1) wait_us(400); // make a small pause. uart buffer should clear by now
-    }
+    f_byte_send = 1;
+    uart_send_report(CMD_RPT_BYTE_KB, &report->mods, 8);
+    memcpy(&bytekb_report_buf[0], &report->mods, 8);
 }
 
 /**
@@ -184,7 +211,7 @@ void RF_Protocol_Receive(void) {
 
     if (Usart_Mgr.RXDState == RX_Done) {
         f_uart_ack = 1;
-        sync_lost = 0;
+        sync_lost  = 0;
 
         if (Usart_Mgr.RXDLen > 4) {
             for (i = 0; i < RX_LEN; i++)
@@ -232,8 +259,7 @@ void RF_Protocol_Receive(void) {
 
                     if (Usart_Mgr.RXDBuf[8] <= 100) dev_info.rf_baterry = Usart_Mgr.RXDBuf[8];
                     if (dev_info.rf_charge & 0x01) dev_info.rf_baterry = 100;
-                }
-                else {
+                } else {
                     if (dev_info.rf_state != RF_INVAILD) {
                         if (error_cnt >= 5) {
                             error_cnt      = 0;
@@ -425,8 +451,7 @@ void dev_sts_sync(void) {
         wait_ms(50);
         writePinHigh(NRF_RESET_PIN);
         wait_ms(50);
-    }
-    else if (f_send_channel) {
+    } else if (f_send_channel) {
         f_send_channel = 0;
         uart_send_cmd(CMD_SET_LINK, 10, 10);
     }
@@ -438,8 +463,7 @@ void dev_sts_sync(void) {
             break_all_key();
         }
         rf_blink_cnt = 0;
-    }
-    else {
+    } else {
         if (host_mode != HOST_RF_TYPE) {
             host_mode = HOST_RF_TYPE;
             break_all_key();
@@ -448,14 +472,13 @@ void dev_sts_sync(void) {
 
         if (dev_info.rf_state != RF_CONNECT) {
             if (disconnect_delay >= 10) {
-                rf_blink_cnt    = 3;
+                rf_blink_cnt      = 3;
                 rf_link_show_time = 0;
-                link_state_temp = dev_info.rf_state;
+                link_state_temp   = dev_info.rf_state;
             } else {
                 disconnect_delay++;
             }
-        }
-        else if (dev_info.rf_state == RF_CONNECT) {
+        } else if (dev_info.rf_state == RF_CONNECT) {
             rf_linking_time  = 0;
             disconnect_delay = 0;
             rf_blink_cnt     = 0;
@@ -545,8 +568,7 @@ void uart_receive_pro(void) {
 
         if (Usart_Mgr.RXDLen >= UART_MAX_LEN) {
             uart_read();
-        }
-        else {
+        } else {
             Usart_Mgr.RXDBuf[Usart_Mgr.RXDLen++] = uart_read();
         }
 
@@ -560,7 +582,7 @@ void uart_receive_pro(void) {
         rcv_start          = false;
         Usart_Mgr.RXDState = RX_Done;
         RF_Protocol_Receive();
-        Usart_Mgr.RXDLen   = 0;
+        Usart_Mgr.RXDLen = 0;
     }
 }
 
