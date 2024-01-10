@@ -137,7 +137,7 @@ void uart_send_report_repeat(void) {
 
     if (timer_elapsed32(interval_timer) > 50) {
         interval_timer = timer_read32();
-        if (no_act_time <= 200) {
+        if (no_act_time <= 50) { // increments every 10ms, 50 = 500ms
             if (f_byte_send) {
                 uart_send_report(CMD_RPT_BYTE_KB, bytekb_report_buf, 8);
                 wait_us(200);
@@ -188,7 +188,7 @@ void uart_send_system_report(report_extra_t *report) {
 void uart_send_report_keyboard(report_keyboard_t *report) {
     no_act_time      = 0;
     report->reserved = 0;
-    f_byte_send = 1;
+    f_byte_send      = 1;
     uart_send_report(CMD_RPT_BYTE_KB, &report->mods, 8);
     memcpy(&bytekb_report_buf[0], &report->mods, 8);
 }
