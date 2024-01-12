@@ -67,11 +67,7 @@ void SYSCFG_EXTILineConfig(uint8_t EXTI_PortSourceGPIOx, uint8_t EXTI_PinSourcex
 #define EXTI_PortSourceGPIOC ((uint8_t)0x02)
 #define EXTI_PortSourceGPIOD ((uint8_t)0x03)
 
-/**
- * @brief Wake up from deep sleep
- * @note This is triggered by an interrupt event.
- *       This is mostly Nuphy's unreleased logic with cleanup/refactoring by me.
- */
+
 #include "usb_main.h"
 /**
  * @brief  Enter deep sleep
@@ -191,6 +187,11 @@ void enter_deep_sleep(void) {
     PWR_EnterSTOPMode(PWR_Regulator_LowPower, PWR_STOPEntry_WFI);
 }
 
+/**
+ * @brief Wake up from deep sleep
+ * @note This is triggered by an interrupt event.
+ *       This is mostly Nuphy's unreleased logic with cleanup/refactoring by me.
+ */
 void exit_deep_sleep(void) {
     // 矩阵初始化
     extern void matrix_init_pins(void);
