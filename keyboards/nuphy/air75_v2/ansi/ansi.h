@@ -42,7 +42,8 @@ enum custom_keycodes {
     BAT_SHOW,
     BAT_NUM,
     RGB_TEST,
-    LINK_TO
+    LINK_TO,
+    KB_DBG
 };
 
 #define SYS_PRT                 G(S(KC_3))

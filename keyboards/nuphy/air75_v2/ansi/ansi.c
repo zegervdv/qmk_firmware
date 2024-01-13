@@ -19,23 +19,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ansi.h"
 #include "usb_main.h"
 
-extern bool f_rf_sw_press;
-extern bool f_sleep_show;
-extern bool f_dev_reset_press;
-extern bool f_bat_num_show;
-extern bool f_rgb_test_press;
-extern bool f_bat_hold;
-extern uint16_t  no_act_time;
-extern uint8_t   rf_sw_temp;
-extern uint16_t  rf_sw_press_delay;
-extern uint16_t  rf_linking_time;
-extern user_config_t user_config;
+extern bool            f_rf_sw_press;
+extern bool            f_sleep_show;
+extern bool            f_dev_reset_press;
+extern bool            f_bat_num_show;
+extern bool            f_rgb_test_press;
+extern bool            f_bat_hold;
+extern uint16_t        no_act_time;
+extern uint8_t         rf_sw_temp;
+extern uint16_t        rf_sw_press_delay;
+extern uint16_t        rf_linking_time;
+extern user_config_t   user_config;
 extern DEV_INFO_STRUCT dev_info;
-
 
 /* qmk process record */
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-    no_act_time = 0;
+    no_act_time     = 0;
     rf_linking_time = 0;
     switch (keycode) {
         case RF_DFU:
@@ -193,9 +192,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
         case SLEEP_MODE:
             if (record->event.pressed) {
-                if(user_config.sleep_enable) user_config.sleep_enable = false;
-                else user_config.sleep_enable = true;
-                f_sleep_show       = 1;
+                if (user_config.sleep_enable)
+                    user_config.sleep_enable = false;
+                else
+                    user_config.sleep_enable = true;
+                f_sleep_show = 1;
                 eeconfig_update_user_datablock(&user_config);
             }
             return false;
@@ -233,16 +234,24 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             return false;
 
+        case KB_DBG:
+            if (record->event.pressed) {
+                debug_enable = !debug_enable;
+                debug_keyboard = debug_enable;
+            }
+            return false;
+
         default:
             return true;
     }
 }
 
-
-bool rgb_matrix_indicators_user(void)
-{
-    if(f_bat_num_show) {
+bool rgb_matrix_indicators_user(void) {
+    if (f_bat_num_show) {
         num_led_show();
+    }
+    if (debug_enable) {
+        rgb_matrix_set_color(56, 0xFF, 0x00, 0x00);
     }
     return true;
 }
@@ -266,7 +275,7 @@ void housekeeping_task_user(void) {
     uart_receive_pro();
 
     uart_send_report_repeat();
-    
+
     dev_sts_sync();
 
     long_press_key();
