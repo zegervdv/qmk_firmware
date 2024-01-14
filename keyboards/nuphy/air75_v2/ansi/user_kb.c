@@ -19,23 +19,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ansi.h"
 #include "usb_main.h"
 #include "rf_driver.h"
+#include "mcu_pwr.h"
 
-user_config_t user_config;
+user_config_t   user_config;
 DEV_INFO_STRUCT dev_info = {
     .rf_baterry = 100,
     .link_mode  = LINK_USB,
     .rf_state   = RF_IDLE,
 };
-bool f_bat_hold         = 0;
-bool f_sys_show         = 0;
-bool f_sleep_show       = 0;
-bool f_send_channel     = 0;
-bool f_dial_sw_init_ok  = 0;
-bool f_rf_sw_press      = 0;
-bool f_dev_reset_press  = 0;
-bool f_rgb_test_press   = 0;
-bool f_bat_num_show     = 0;
-bool f_rgb_led_show     = 0; // Something showing on RGB LED matrix.
+bool f_bat_hold        = 0;
+bool f_sys_show        = 0;
+bool f_sleep_show      = 0;
+bool f_send_channel    = 0;
+bool f_dial_sw_init_ok = 0;
+bool f_rf_sw_press     = 0;
+bool f_dev_reset_press = 0;
+bool f_rgb_test_press  = 0;
+bool f_bat_num_show    = 0;
+bool f_rgb_led_show    = 0; // Something showing on RGB LED matrix.
 
 uint8_t        rf_blink_cnt          = 0;
 uint8_t        rf_sw_temp            = 0;
@@ -46,6 +47,8 @@ uint16_t       no_act_time           = 0;
 uint16_t       dev_reset_press_delay = 0;
 uint16_t       rf_sw_press_delay     = 0;
 uint16_t       rgb_test_press_delay  = 0;
+uint16_t       rgb_led_last_act      = 0;
+uint16_t       side_led_last_act     = 0;
 host_driver_t *m_host_driver         = 0;
 
 extern bool               f_rf_new_adv_ok;
@@ -127,9 +130,9 @@ void long_press_key(void) {
 
             if (dev_info.link_mode != LINK_USB) {
                 if (dev_info.link_mode != LINK_RF_24) {
-                    dev_info.link_mode      = LINK_BT_1;
-                    dev_info.ble_channel    = LINK_BT_1;
-                    dev_info.rf_channel     = LINK_BT_1;
+                    dev_info.link_mode   = LINK_BT_1;
+                    dev_info.ble_channel = LINK_BT_1;
+                    dev_info.rf_channel  = LINK_BT_1;
                 }
             } else {
                 dev_info.ble_channel = LINK_BT_1;
@@ -175,7 +178,7 @@ void long_press_key(void) {
  * @brief  Release all keys, clear keyboard report.
  */
 void break_all_key(void) {
-    bool    nkro_temp = keymap_config.nkro;
+    bool nkro_temp = keymap_config.nkro;
 
     clear_weak_mods();
     clear_mods();
@@ -298,62 +301,65 @@ void dial_sw_scan(void) {
  * @brief  power on scan dial switch.
  */
 void dial_sw_fast_scan(void) {
-{
-    uint8_t dial_scan_dev = 0;
-    uint8_t dial_scan_sys = 0;
-    uint8_t dial_check_dev = 0;
-    uint8_t dial_check_sys = 0;
-    uint8_t debounce = 0;
+    {
+        uint8_t dial_scan_dev  = 0;
+        uint8_t dial_scan_sys  = 0;
+        uint8_t dial_check_dev = 0;
+        uint8_t dial_check_sys = 0;
+        uint8_t debounce       = 0;
 
-    setPinInputHigh(DEV_MODE_PIN);
-    setPinInputHigh(SYS_MODE_PIN);
+        setPinInputHigh(DEV_MODE_PIN);
+        setPinInputHigh(SYS_MODE_PIN);
 
-    // Debounce to get a stable state
-    for(debounce=0; debounce<10; debounce++) {
-        dial_scan_dev = 0;
-        dial_scan_sys = 0;
-        if (readPin(DEV_MODE_PIN))  dial_scan_dev = 0x01;
-        else                        dial_scan_dev = 0;
-        if (readPin(SYS_MODE_PIN))  dial_scan_sys = 0x01;
-        else                        dial_scan_sys = 0;
-        if((dial_scan_dev != dial_check_dev)||(dial_scan_sys != dial_check_sys))
-        {
-            dial_check_dev = dial_scan_dev;
-            dial_check_sys = dial_scan_sys;
-            debounce = 0;
+        // Debounce to get a stable state
+        for (debounce = 0; debounce < 10; debounce++) {
+            dial_scan_dev = 0;
+            dial_scan_sys = 0;
+            if (readPin(DEV_MODE_PIN))
+                dial_scan_dev = 0x01;
+            else
+                dial_scan_dev = 0;
+            if (readPin(SYS_MODE_PIN))
+                dial_scan_sys = 0x01;
+            else
+                dial_scan_sys = 0;
+            if ((dial_scan_dev != dial_check_dev) || (dial_scan_sys != dial_check_sys)) {
+                dial_check_dev = dial_scan_dev;
+                dial_check_sys = dial_scan_sys;
+                debounce       = 0;
+            }
+            wait_ms(1);
         }
-        wait_ms(1);
+
+        // RF link mode
+        if (dial_scan_dev) {
+            if (dev_info.link_mode != LINK_USB) {
+                switch_dev_link(LINK_USB);
+            }
+        } else {
+            if (dev_info.link_mode != dev_info.rf_channel) {
+                switch_dev_link(dev_info.rf_channel);
+            }
+        }
+
+        // Win or Mac
+        if (dial_scan_sys) {
+            if (dev_info.sys_sw_state != SYS_SW_MAC) {
+                default_layer_set(1 << 0);
+                dev_info.sys_sw_state = SYS_SW_MAC;
+                keymap_config.nkro    = 0;
+                break_all_key();
+            }
+        } else {
+            if (dev_info.sys_sw_state != SYS_SW_WIN) {
+                // f_sys_show = 1;
+                default_layer_set(1 << 2);
+                dev_info.sys_sw_state = SYS_SW_WIN;
+                keymap_config.nkro    = 1;
+                break_all_key();
+            }
+        }
     }
-
-    // RF link mode
-    if (dial_scan_dev) {
-        if (dev_info.link_mode != LINK_USB) {
-            switch_dev_link(LINK_USB);
-        }
-    } else {
-        if (dev_info.link_mode != dev_info.rf_channel) {
-            switch_dev_link(dev_info.rf_channel);
-        }
-    }
-
-    // Win or Mac
-    if (dial_scan_sys) {
-        if (dev_info.sys_sw_state != SYS_SW_MAC) {
-            default_layer_set(1 << 0);
-            dev_info.sys_sw_state = SYS_SW_MAC;
-            keymap_config.nkro    = 0;
-            break_all_key();
-        }
-    } else {
-        if (dev_info.sys_sw_state != SYS_SW_WIN) {
-            //f_sys_show = 1;
-            default_layer_set(1 << 2);
-            dev_info.sys_sw_state = SYS_SW_WIN;
-            keymap_config.nkro    = 1;
-            break_all_key();
-        }
-    }
-}
 }
 
 /**
@@ -380,6 +386,10 @@ void timer_pro(void) {
     if (no_act_time < 0xffff) no_act_time++;
 
     if (rf_linking_time < 0xffff) rf_linking_time++;
+
+    if (rgb_led_last_act < 0xffff) rgb_led_last_act++;
+    
+    if (side_led_last_act < 0xffff) side_led_last_act++;
 }
 
 /**
@@ -400,10 +410,19 @@ void londing_eeprom_data(void) {
         user_config.rf_link_timeout         = LINK_TIMEOUT;
         eeconfig_update_user_datablock(&user_config);
     } else {
-        side_mode       = user_config.ee_side_mode;
-        side_light      = user_config.ee_side_light;
-        side_speed      = user_config.ee_side_speed;
-        side_rgb        = user_config.ee_side_rgb;
-        side_colour     = user_config.ee_side_colour;
+        side_mode   = user_config.ee_side_mode;
+        side_light  = user_config.ee_side_light;
+        side_speed  = user_config.ee_side_speed;
+        side_rgb    = user_config.ee_side_rgb;
+        side_colour = user_config.ee_side_colour;
     }
+}
+
+/**
+ * @brief Wrapper for rgb_matrix_set_color for sleep.c logic usage.
+ */
+void user_set_rgb_color(int index, uint8_t red, uint8_t green, uint8_t blue) {
+    rgb_led_last_act = 0;
+    pwr_rgb_led_on(); // turn on LEDs
+    rgb_matrix_set_color(index, red, green, blue);
 }

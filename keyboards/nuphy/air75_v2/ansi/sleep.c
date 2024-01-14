@@ -29,7 +29,8 @@ extern uint16_t        no_act_time;
 extern bool            f_goto_sleep;
 extern bool            f_wakeup_prepare;
 extern uint8_t         side_light;
-extern bool            f_rgb_led_show;
+extern uint16_t        rgb_led_last_act;
+extern uint16_t        side_led_last_act;
 
 extern uint8_t bitkb_report_buf[32];
 extern uint8_t bytekb_report_buf[8];
@@ -57,32 +58,29 @@ void deep_sleep_handle(void) {
 void led_power_handle(void) {
     static uint32_t interval = 0;
 
-    if (timer_elapsed32(interval) < 2000) // only check once in a while, less flickering
+    if (timer_elapsed32(interval) < 2000) // only check once in a while, less flickering for unhandled cases
         return;
 
     interval = timer_read32();
 
-    if (rgb_matrix_is_enabled()) {
-        // this doesn't detect when keys are lit individually.
-        if (rgb_matrix_get_hsv().v == 0) { // brightness is 0
-            // power off led, save battery. only do this if something isn't showing.
-            if (!f_rgb_led_show) {
+    if (rgb_led_last_act > 200) { // 10ms intervals
+        if (rgb_matrix_is_enabled()) {
+            if (rgb_matrix_get_hsv().v == 0) { // brightness is 0
                 pwr_rgb_led_off();
+            } else {
+                pwr_rgb_led_on();
             }
         } else {
-            pwr_rgb_led_on();
+            pwr_rgb_led_off();
         }
-    } else {
-        pwr_rgb_led_off();
     }
 
-    // side lights handle.
-    if (side_light == 0) {
-        if (is_side_rgb_off()) {
+    if (side_led_last_act > 200) { // 10ms intervals
+        if (side_light == 0) {
             pwr_side_led_off();
+        } else {
+            pwr_side_led_on();
         }
-    } else {
-        pwr_side_led_on();
     }
 }
 

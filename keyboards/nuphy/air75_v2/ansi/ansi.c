@@ -256,25 +256,17 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 }
 
 bool rgb_matrix_indicators_user(void) {
-    f_rgb_led_show = 0;
     if (f_bat_num_show) {
-        f_rgb_led_show = 1;
         num_led_show();
     }
+
     if (debug_enable) {
-        f_rgb_led_show = 1;
-        rgb_matrix_set_color(56, 0xFF, 0x00, 0x00);
+        user_set_rgb_color(56, 0xFF, 0x00, 0x00);
     }
 
     // light up corresponding BT mode key during connnection
     if (rf_blink_cnt && dev_info.link_mode >= LINK_BT_1 && dev_info.link_mode <= LINK_BT_3) {
-        f_rgb_led_show = 1;
-        rgb_matrix_set_color(30 - dev_info.link_mode, 0, 0, 0xFF);
-    }
-
-    // power on LEDs if it's off.
-    if (f_rgb_led_show) {
-        pwr_rgb_led_on();
+        user_set_rgb_color(30 - dev_info.link_mode, 0, 0, 0xFF);
     }
 
     return true;

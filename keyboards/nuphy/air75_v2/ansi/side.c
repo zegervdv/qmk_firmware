@@ -82,6 +82,7 @@ extern DEV_INFO_STRUCT dev_info;
 extern user_config_t   user_config;
 extern uint8_t         rf_blink_cnt;
 extern uint16_t        rf_link_show_time;
+extern uint16_t        side_led_last_act;
 extern bool            f_bat_hold;
 extern bool            f_sys_show;
 extern bool            f_sleep_show;
@@ -114,6 +115,10 @@ void side_rgb_set_color(int index, uint8_t red, uint8_t green, uint8_t blue) {
  * @brief  refresh side leds.
  */
 void side_rgb_refresh(void) {
+    if (!is_side_rgb_off()) {
+        side_led_last_act = 0;
+        pwr_side_led_on(); // power on side LED before refresh
+    }
     side_ws2812_setleds(side_leds, SIDE_LED_NUM);
 }
 
@@ -599,12 +604,12 @@ void bat_num_led(uint8_t bat_percent) {
 
     // set F keys for battery percentage tens (e.g, 10%)
     for (uint8_t i = 1; i <= bat_pct_tens; i++) {
-        rgb_matrix_set_color(i, r, g, b);
+        user_set_rgb_color(i, r, g, b);
     }
 
     // set number row for battery percentage ones (e.g., 5 in 15%)
     for (uint8_t i = 0; i < bat_pct_ones; i++) {
-        rgb_matrix_set_color(29 - i, r, g, b);
+        user_set_rgb_color(29 - i, r, g, b);
     }
 }
 
@@ -616,7 +621,7 @@ void num_led_show(void) {
 
 void bat_led_close(void) {
     for (int i = 20; i <= 29; i++) {
-        rgb_matrix_set_color(i, 0, 0, 0);
+        user_set_rgb_color(i, 0, 0, 0);
     }
 }
 
@@ -884,9 +889,6 @@ void side_led_show(void) {
 
     if (timer_elapsed32(side_refresh_time) > 30) {
         side_refresh_time = timer_read32();
-        if (!is_side_rgb_off()) {
-            pwr_side_led_on(); // power on side LED before refresh
-        }
         side_rgb_refresh();
     }
 }
