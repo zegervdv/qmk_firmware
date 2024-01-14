@@ -36,11 +36,21 @@ extern uint8_t bitkb_report_buf[32];
 extern uint8_t bytekb_report_buf[8];
 
 bool is_side_rgb_off(void);
+void set_left_rgb(uint8_t r, uint8_t g, uint8_t b);
+void set_right_rgb(uint8_t r, uint8_t g, uint8_t b);
+void side_rgb_refresh(void);
 
 void deep_sleep_handle(void) {
     break_all_key(); // reset keys before sleeping for new QMK lifecycle to handle on wake.
     memset(bitkb_report_buf, 0, sizeof(bitkb_report_buf));
     memset(bytekb_report_buf, 0, sizeof(bytekb_report_buf));
+
+    // Visual cue for deep sleep on side LED.
+    pwr_side_led_on();
+    set_left_rgb(0x99, 0x00, 0x00);
+    set_right_rgb(0x99, 0x00, 0x00);
+    side_rgb_refresh();
+    wait_ms(500);
 
     enter_deep_sleep(); // puts the board in WFI mode and pauses the MCU
     exit_deep_sleep();  // This gets called when there is an interrupt (wake) event.
