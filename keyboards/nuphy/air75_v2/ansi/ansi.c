@@ -282,6 +282,8 @@ void keyboard_post_init_user(void) {
     break_all_key();
     dial_sw_fast_scan();
     londing_eeprom_data();
+
+    m_timer6_init(); // Add back TIM6 timer init for Nuphy
 }
 
 /* qmk housekeeping task */
