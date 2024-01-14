@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ansi.h"
 #include "side_table.h"
 #include "ws2812.h"
+#include "mcu_pwr.h"
 
 #define SIDE_BRIGHT_MAX     4
 #define SIDE_SPEED_MAX      4
@@ -88,6 +89,16 @@ extern bool            f_sleep_show;
 void side_ws2812_setleds(rgb_led_t *ledarray, uint16_t leds);
 void rgb_matrix_update_pwm_buffers(void);
 
+// Copied from old nuphy code. Check if side RGB has values set.
+bool is_side_rgb_off(void) {
+    for (int i = 0; i < SIDE_LED_NUM; i++) {
+        if ((side_leds[i].r != 0) || (side_leds[i].g != 0) || (side_leds[i].b != 0)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 /**
  * @brief  side leds set color vaule.
  * @param  index: index of side_leds[].
@@ -122,6 +133,9 @@ void side_light_contol(uint8_t dir) {
             return;
         } else
             side_light--;
+    }
+    if (side_light) { // immediately power on LED.
+        pwr_side_led_on();
     }
     user_config.ee_side_light = side_light;
     eeconfig_update_user_datablock(&user_config);
@@ -549,39 +563,38 @@ void rf_led_show(void) {
     }
 
     set_left_rgb(r_temp, g_temp, b_temp);
-    
-    //light up corresponding BT mode key
-    if (dev_info.link_mode >= LINK_BT_1 && dev_info.link_mode <= LINK_BT_3) {
-        rgb_matrix_set_color(30 - dev_info.link_mode, r_temp, g_temp, b_temp);
-    }
 }
 
 /**
  * @brief  bat_num_led.
  */
-void bat_num_led(uint8_t bat_percent)
-{
+void bat_num_led(uint8_t bat_percent) {
     uint8_t r, g, b;
-    
+
     if (bat_percent >= 100) {
         bat_percent = 100;
     }
-    
+
     uint8_t bat_pct_tens = bat_percent / 10;
     uint8_t bat_pct_ones = bat_percent % 10;
 
     // set color
     if (bat_percent <= 15) {
-        r = 0xff; g = 0x00; b = 0x00;
-    }
-    else if (bat_percent <= 50) {
-        r = 0xff; g = 0x40; b = 0x00;
-    }
-    else if (bat_percent <= 80) {
-        r = 0xff; g = 0xff; b = 0x00;
-    }
-    else {
-        r = 0x00; g = 0xff; b = 0x00;
+        r = 0xff;
+        g = 0x00;
+        b = 0x00;
+    } else if (bat_percent <= 50) {
+        r = 0xff;
+        g = 0x40;
+        b = 0x00;
+    } else if (bat_percent <= 80) {
+        r = 0xff;
+        g = 0xff;
+        b = 0x00;
+    } else {
+        r = 0x00;
+        g = 0xff;
+        b = 0x00;
     }
 
     // set F keys for battery percentage tens (e.g, 10%)
@@ -595,19 +608,16 @@ void bat_num_led(uint8_t bat_percent)
     }
 }
 
-void num_led_show(void)
-{
-    static uint8_t num_bat_temp         = 0;
-    num_bat_temp         = dev_info.rf_baterry;
+void num_led_show(void) {
+    static uint8_t num_bat_temp = 0;
+    num_bat_temp                = dev_info.rf_baterry;
     bat_num_led(num_bat_temp);
 }
 
-void bat_led_close(void)
-{
-    for(int i=20; i<=29; i++) {
-        rgb_matrix_set_color(i,0,0,0);
+void bat_led_close(void) {
+    for (int i = 20; i <= 29; i++) {
+        rgb_matrix_set_color(i, 0, 0, 0);
     }
-
 }
 
 /**
@@ -727,12 +737,8 @@ void bat_led_show(void) {
  * @brief  device_reset_show.
  */
 void device_reset_show(void) {
-
-    writePinHigh(DC_BOOST_PIN);
-    setPinOutput(DRIVER_SIDE_CS_PIN);
-    setPinOutput(DRIVER_LED_CS_PIN);
-    writePinLow(DRIVER_SIDE_CS_PIN);
-    writePinLow(DRIVER_LED_CS_PIN);
+    pwr_rgb_led_on();
+    pwr_side_led_on();
 
     for (int blink_cnt = 0; blink_cnt < 3; blink_cnt++) {
         rgb_matrix_set_color_all(0x10, 0x10, 0x10);
@@ -785,15 +791,11 @@ void device_reset_init(void) {
 
 /**
  *      RGB test
-*/
-void rgb_test_show(void)
-{
+ */
+void rgb_test_show(void) {
     // open power control
-    writePinHigh(DC_BOOST_PIN);
-    setPinOutput(DRIVER_LED_CS_PIN);
-    writePinLow(DRIVER_LED_CS_PIN);
-    setPinOutput(DRIVER_SIDE_CS_PIN);
-    writePinLow(DRIVER_SIDE_CS_PIN);
+    pwr_rgb_led_on();
+    pwr_side_led_on();
 
     // set test color
     rgb_matrix_set_color_all(0xFF, 0x00, 0x00);
@@ -882,6 +884,9 @@ void side_led_show(void) {
 
     if (timer_elapsed32(side_refresh_time) > 30) {
         side_refresh_time = timer_read32();
+        if (!is_side_rgb_off()) {
+            pwr_side_led_on(); // power on side LED before refresh
+        }
         side_rgb_refresh();
     }
 }

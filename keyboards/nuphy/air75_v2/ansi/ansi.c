@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "user_kb.h"
 #include "ansi.h"
 #include "usb_main.h"
+#include "mcu_pwr.h"
 
 extern bool            f_rf_sw_press;
 extern bool            f_sleep_show;
@@ -25,12 +26,14 @@ extern bool            f_dev_reset_press;
 extern bool            f_bat_num_show;
 extern bool            f_rgb_test_press;
 extern bool            f_bat_hold;
+extern bool            f_rgb_led_show;
 extern uint16_t        no_act_time;
 extern uint8_t         rf_sw_temp;
 extern uint16_t        rf_sw_press_delay;
 extern uint16_t        rf_linking_time;
 extern user_config_t   user_config;
 extern DEV_INFO_STRUCT dev_info;
+extern uint8_t         rf_blink_cnt;
 
 /* qmk process record */
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
@@ -234,9 +237,15 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             return false;
 
+        case RGB_VAI: // ensure LED powers on with brightness increase
+            if (record->event.pressed) {
+                pwr_rgb_led_on();
+            }
+            return true;
+
         case KB_DBG:
             if (record->event.pressed) {
-                debug_enable = !debug_enable;
+                debug_enable   = !debug_enable;
                 debug_keyboard = debug_enable;
             }
             return false;
@@ -247,12 +256,27 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 }
 
 bool rgb_matrix_indicators_user(void) {
+    f_rgb_led_show = 0;
     if (f_bat_num_show) {
+        f_rgb_led_show = 1;
         num_led_show();
     }
     if (debug_enable) {
+        f_rgb_led_show = 1;
         rgb_matrix_set_color(56, 0xFF, 0x00, 0x00);
     }
+
+    // light up corresponding BT mode key during connnection
+    if (rf_blink_cnt && dev_info.link_mode >= LINK_BT_1 && dev_info.link_mode <= LINK_BT_3) {
+        f_rgb_led_show = 1;
+        rgb_matrix_set_color(30 - dev_info.link_mode, 0, 0, 0xFF);
+    }
+
+    // power on LEDs if it's off.
+    if (f_rgb_led_show) {
+        pwr_rgb_led_on();
+    }
+
     return true;
 }
 

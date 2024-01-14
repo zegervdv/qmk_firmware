@@ -8,7 +8,9 @@
 // 外部变量
 extern DEV_INFO_STRUCT dev_info;
 
-bool f_usb_deinit = 0;
+static bool f_usb_deinit         = 0;
+static bool side_led_powered_off = 0;
+static bool rgb_led_powered_off  = 0;
 
 /** ================================================================
  * @brief   UART_GPIO 翻转速率配置低速+上拉
@@ -66,7 +68,6 @@ void SYSCFG_EXTILineConfig(uint8_t EXTI_PortSourceGPIOx, uint8_t EXTI_PinSourcex
 #define EXTI_PortSourceGPIOB ((uint8_t)0x01)
 #define EXTI_PortSourceGPIOC ((uint8_t)0x02)
 #define EXTI_PortSourceGPIOD ((uint8_t)0x03)
-
 
 #include "usb_main.h"
 /**
@@ -159,12 +160,7 @@ void enter_deep_sleep(void) {
     NVIC_InitStructure.NVIC_IRQChannel = EXTI2_3_IRQn;
     NVIC_Init(&NVIC_InitStructure);
 
-    // power off leds
-    setPinOutput(DC_BOOST_PIN);
-    writePinLow(DC_BOOST_PIN);
-
-    setPinInput(DRIVER_LED_CS_PIN);
-    setPinInput(DRIVER_SIDE_CS_PIN);
+    led_pwr_sleep_handle();
 
     setPinOutput(DEV_MODE_PIN);
     writePinLow(DEV_MODE_PIN);
@@ -205,15 +201,8 @@ void exit_deep_sleep(void) {
 
     setPinOutput(NRF_WAKEUP_PIN);
 
-    // 使能DC升压
-    setPinOutput(DC_BOOST_PIN);
-    writePinHigh(DC_BOOST_PIN);
-
     // power on LEDs This is missing from Nuphy's logic.
-    setPinOutput(DRIVER_LED_CS_PIN);
-    writePinLow(DRIVER_LED_CS_PIN);
-    setPinOutput(DRIVER_SIDE_CS_PIN);
-    writePinLow(DRIVER_SIDE_CS_PIN);
+    led_pwr_wake_handle();
 
     // 重新初始化系统时钟
     stm32_clock_init();
@@ -243,12 +232,7 @@ void enter_light_sleep(void) {
     else
         uart_send_cmd(CMD_SLEEP, 5, 5);
 
-    // power off led
-    setPinOutput(DC_BOOST_PIN);
-    writePinLow(DC_BOOST_PIN);
-
-    setPinInput(DRIVER_LED_CS_PIN);
-    setPinInput(DRIVER_SIDE_CS_PIN);
+    led_pwr_sleep_handle();
 }
 
 /**
@@ -256,14 +240,8 @@ void enter_light_sleep(void) {
  * @note This is Nuphy's "open sourced" wake logic. It's not deep sleep.
  */
 void exit_light_sleep(void) {
-    setPinOutput(DC_BOOST_PIN);
-    writePinHigh(DC_BOOST_PIN);
+    led_pwr_wake_handle();
 
-    // power on LEDs
-    setPinOutput(DRIVER_LED_CS_PIN);
-    writePinLow(DRIVER_LED_CS_PIN);
-    setPinOutput(DRIVER_SIDE_CS_PIN);
-    writePinLow(DRIVER_SIDE_CS_PIN);
     uart_send_cmd(CMD_HAND, 0, 1);
 
     if (dev_info.link_mode == LINK_USB) {
@@ -271,6 +249,76 @@ void exit_light_sleep(void) {
         restart_usb_driver(&USB_DRIVER);
     }
 }
+
+void led_pwr_sleep_handle(void) {
+    // reset the flags.
+    side_led_powered_off = 0;
+    rgb_led_powered_off  = 0;
+
+    // power off leds if they were enabled
+    if (is_rgb_led_on()) {
+        rgb_led_powered_off = 1;
+        pwr_rgb_led_off();
+    }
+    if (is_side_led_on()) {
+        side_led_powered_off = 1;
+        pwr_side_led_off();
+    }
+}
+
+void led_pwr_wake_handle(void) {
+    if (rgb_led_powered_off) {
+        pwr_rgb_led_on();
+    }
+    if (side_led_powered_off) {
+        pwr_side_led_on();
+    }
+}
+
+static bool rgb_led_on  = 1;
+static bool side_led_on = 1;
+
+void pwr_rgb_led_off(void) {
+    if (!rgb_led_on) return;
+    // LED power supply off
+    setPinOutput(DC_BOOST_PIN);
+    writePinLow(DC_BOOST_PIN);
+    setPinInput(DRIVER_LED_CS_PIN);
+    rgb_led_on = 0;
+}
+
+void pwr_rgb_led_on(void) {
+    if (rgb_led_on) return;
+    // LED power supply on
+    setPinOutput(DC_BOOST_PIN);
+    writePinHigh(DC_BOOST_PIN);
+    setPinOutput(DRIVER_LED_CS_PIN);
+    writePinLow(DRIVER_LED_CS_PIN);
+    rgb_led_on = 1;
+}
+
+void pwr_side_led_off(void) {
+    if (!side_led_on) return;
+    setPinInput(DRIVER_SIDE_CS_PIN);
+    side_led_on = 0;
+}
+
+void pwr_side_led_on(void) {
+    if (side_led_on) return;
+    setPinOutput(DRIVER_SIDE_CS_PIN);
+    writePinLow(DRIVER_SIDE_CS_PIN);
+    side_led_on = 1;
+}
+
+bool is_rgb_led_on(void) {
+    return rgb_led_on;
+}
+
+bool is_side_led_on(void) {
+    return side_led_on;
+}
+
+/* Nuphy's implementations. */
 
 /**
  * @brief  Clears the EXTI's line pending flags.
@@ -402,6 +450,9 @@ OSAL_IRQ_HANDLER(STM32_TIM6_HANDLER) {
     }
 }
 
+// For this to work you need to call m_timer6_init() in ansi.c post kb init user.
+// That enables the STM32_TIM6_HANDLER but it always runs for some reason.
+// So... not sure what the purpose of this is.
 void idle_enter_sleep(void) {
     TIM6->CNT      = 0;
     idle_sleep_cnt = 0;

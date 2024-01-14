@@ -28,11 +28,13 @@ extern uint16_t        rf_link_timeout;
 extern uint16_t        no_act_time;
 extern bool            f_goto_sleep;
 extern bool            f_wakeup_prepare;
+extern uint8_t         side_light;
+extern bool            f_rgb_led_show;
 
 extern uint8_t bitkb_report_buf[32];
 extern uint8_t bytekb_report_buf[8];
 
-uint8_t uart_send_cmd(uint8_t cmd, uint8_t ack_cnt, uint8_t delayms);
+bool is_side_rgb_off(void);
 
 void deep_sleep_handle(void) {
     break_all_key(); // reset keys before sleeping for new QMK lifecycle to handle on wake.
@@ -47,6 +49,43 @@ void deep_sleep_handle(void) {
     */
 }
 
+/*
+ * @brief Handle LED power
+ * @note Turn off LEDs if not used to save some power. This is ported
+ *       from older Nuphy leaks.
+ */
+void led_power_handle(void) {
+    static uint32_t interval = 0;
+
+    if (timer_elapsed32(interval) < 2000) // only check once in a while, less flickering
+        return;
+
+    interval = timer_read32();
+
+    if (rgb_matrix_is_enabled()) {
+        // this doesn't detect when keys are lit individually.
+        if (rgb_matrix_get_hsv().v == 0) { // brightness is 0
+            // power off led, save battery. only do this if something isn't showing.
+            if (!f_rgb_led_show) {
+                pwr_rgb_led_off();
+            }
+        } else {
+            pwr_rgb_led_on();
+        }
+    } else {
+        pwr_rgb_led_off();
+    }
+
+    // side lights handle.
+    if (side_light == 0) {
+        if (is_side_rgb_off()) {
+            pwr_side_led_off();
+        }
+    } else {
+        pwr_side_led_on();
+    }
+}
+
 /**
  * @brief  Sleep Handle.
  */
@@ -58,6 +97,9 @@ void sleep_handle(void) {
     /* 50ms interval */
     if (timer_elapsed32(delay_step_timer) < 50) return;
     delay_step_timer = timer_read32();
+
+    // power down unused LEDs
+    led_power_handle();
 
     // sleep process;
     if (f_goto_sleep) {
