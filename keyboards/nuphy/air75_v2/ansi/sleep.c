@@ -102,13 +102,6 @@ void sleep_handle(void) {
     static uint8_t  usb_suspend_debounce = 0;
     static uint32_t rf_disconnect_time   = 0;
 
-    /* Old Nuphy sources runs this only if LED's are off.
-       It doesn't seem to impact LEDs so I'll run it always on RF.
-    */
-    if (dev_info.link_mode != LINK_USB) {
-        idle_enter_sleep(); // supposedly puts the board in low power mode.
-    }
-
     /* 50ms interval */
     if (timer_elapsed32(delay_step_timer) < 50) return;
     delay_step_timer = timer_read32();

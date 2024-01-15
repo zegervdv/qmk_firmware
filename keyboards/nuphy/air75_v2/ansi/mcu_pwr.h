@@ -94,6 +94,3 @@ bool is_side_led_on(void);
 
 void led_pwr_sleep_handle(void);
 void led_pwr_wake_handle(void);
-
-void m_timer6_init(void);
-void idle_enter_sleep(void);
