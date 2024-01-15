@@ -301,63 +301,61 @@ void dial_sw_scan(void) {
  * @brief  power on scan dial switch.
  */
 void dial_sw_fast_scan(void) {
-    {
-        uint8_t dial_scan_dev  = 0;
-        uint8_t dial_scan_sys  = 0;
-        uint8_t dial_check_dev = 0;
-        uint8_t dial_check_sys = 0;
-        uint8_t debounce       = 0;
+    uint8_t dial_scan_dev  = 0;
+    uint8_t dial_scan_sys  = 0;
+    uint8_t dial_check_dev = 0;
+    uint8_t dial_check_sys = 0;
+    uint8_t debounce       = 0;
 
-        setPinInputHigh(DEV_MODE_PIN);
-        setPinInputHigh(SYS_MODE_PIN);
+    setPinInputHigh(DEV_MODE_PIN);
+    setPinInputHigh(SYS_MODE_PIN);
 
-        // Debounce to get a stable state
-        for (debounce = 0; debounce < 10; debounce++) {
+    // Debounce to get a stable state
+    for (debounce = 0; debounce < 10; debounce++) {
+        dial_scan_dev = 0;
+        dial_scan_sys = 0;
+        if (readPin(DEV_MODE_PIN))
+            dial_scan_dev = 0x01;
+        else
             dial_scan_dev = 0;
+        if (readPin(SYS_MODE_PIN))
+            dial_scan_sys = 0x01;
+        else
             dial_scan_sys = 0;
-            if (readPin(DEV_MODE_PIN))
-                dial_scan_dev = 0x01;
-            else
-                dial_scan_dev = 0;
-            if (readPin(SYS_MODE_PIN))
-                dial_scan_sys = 0x01;
-            else
-                dial_scan_sys = 0;
-            if ((dial_scan_dev != dial_check_dev) || (dial_scan_sys != dial_check_sys)) {
-                dial_check_dev = dial_scan_dev;
-                dial_check_sys = dial_scan_sys;
-                debounce       = 0;
-            }
-            wait_ms(1);
+        if ((dial_scan_dev != dial_check_dev) || (dial_scan_sys != dial_check_sys)) {
+            dial_check_dev = dial_scan_dev;
+            dial_check_sys = dial_scan_sys;
+            debounce       = 0;
         }
+        wait_ms(1);
+    }
 
-        // RF link mode
-        if (dial_scan_dev) {
-            if (dev_info.link_mode != LINK_USB) {
-                switch_dev_link(LINK_USB);
-            }
-        } else {
-            if (dev_info.link_mode != dev_info.rf_channel) {
-                switch_dev_link(dev_info.rf_channel);
-            }
+    // RF link mode
+    if (dial_scan_dev) {
+        if (dev_info.link_mode != LINK_USB) {
+            switch_dev_link(LINK_USB);
         }
+    } else {
+        if (dev_info.link_mode != dev_info.rf_channel) {
+            switch_dev_link(dev_info.rf_channel);
+        }
+    }
 
-        // Win or Mac
-        if (dial_scan_sys) {
-            if (dev_info.sys_sw_state != SYS_SW_MAC) {
-                default_layer_set(1 << 0);
-                dev_info.sys_sw_state = SYS_SW_MAC;
-                keymap_config.nkro    = 0;
-                break_all_key();
-            }
-        } else {
-            if (dev_info.sys_sw_state != SYS_SW_WIN) {
-                // f_sys_show = 1;
-                default_layer_set(1 << 2);
-                dev_info.sys_sw_state = SYS_SW_WIN;
-                keymap_config.nkro    = 1;
-                break_all_key();
-            }
+    // Win or Mac
+    if (dial_scan_sys) {
+        if (dev_info.sys_sw_state != SYS_SW_MAC) {
+            default_layer_set(1 << 0);
+            dev_info.sys_sw_state = SYS_SW_MAC;
+            keymap_config.nkro    = 0;
+            break_all_key();
+        }
+    } else {
+        if (dev_info.sys_sw_state != SYS_SW_WIN) {
+            // f_sys_show = 1;
+            default_layer_set(1 << 2);
+            dev_info.sys_sw_state = SYS_SW_WIN;
+            keymap_config.nkro    = 1;
+            break_all_key();
         }
     }
 }
@@ -388,7 +386,7 @@ void timer_pro(void) {
     if (rf_linking_time < 0xffff) rf_linking_time++;
 
     if (rgb_led_last_act < 0xffff) rgb_led_last_act++;
-    
+
     if (side_led_last_act < 0xffff) side_led_last_act++;
 }
 
