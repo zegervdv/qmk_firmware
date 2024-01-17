@@ -111,7 +111,11 @@ void sleep_handle(void) {
 
     // sleep process;
     if (f_goto_sleep) {
-        f_goto_sleep    = 0;
+        // reset all counters
+        f_goto_sleep       = 0;
+        rf_disconnect_time = 0;
+        rf_linking_time    = 0;
+
         bool deep_sleep = 0;
         if (user_config.sleep_enable) {
             deep_sleep = 1;
@@ -153,6 +157,7 @@ void sleep_handle(void) {
 
     // sleep check, won't reach here on deep sleep.
     if (f_goto_sleep || f_wakeup_prepare) return;
+
     if (dev_info.link_mode == LINK_USB) {
         if (USB_DRIVER.state == USB_SUSPENDED) {
             usb_suspend_debounce++;
@@ -168,13 +173,11 @@ void sleep_handle(void) {
             f_goto_sleep = 1;
         }
     } else if (rf_linking_time >= user_config.rf_link_timeout) {
-        rf_linking_time = 0;
         f_goto_sleep    = 1;
     } else if (dev_info.rf_state == RF_DISCONNECT) {
         rf_disconnect_time++;
-        if (rf_disconnect_time > 5 * 20) {
-            rf_disconnect_time = 0;
-            f_goto_sleep       = 1;
+        if (rf_disconnect_time > 5 * 20) { // 5 seconds
+            f_goto_sleep = 1;
         }
     }
 }

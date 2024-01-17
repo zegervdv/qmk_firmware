@@ -275,8 +275,8 @@ void led_pwr_wake_handle(void) {
     }
 }
 
-static bool rgb_led_on  = 1;
-static bool side_led_on = 1;
+static bool rgb_led_on  = 0;
+static bool side_led_on = 0;
 
 void pwr_rgb_led_off(void) {
     if (!rgb_led_on) return;
@@ -430,6 +430,10 @@ void m_timer6_init(void) {
     NVIC_Init(&NVIC_InitStructure);
 
     /* Time 定时器基础设置 */
+    /* This configuration results in 1ms intervals: https://deepbluembedded.com/stm32-timer-interrupt-hal-example-timer-mode-lab/
+       Tout = (ARR + 1)(PSC + 1) / Fclk (48mhz for STM32F072)
+       0.001 = (1000)(48)/(48_000_000) = 1ms
+    */
     TIM_TimeBaseStructure.TIM_Period        = 1000 - 1;
     TIM_TimeBaseStructure.TIM_Prescaler     = 48 - 1;
     TIM_TimeBaseStructure.TIM_ClockDivision = 0;
@@ -442,6 +446,10 @@ void m_timer6_init(void) {
     TIM_Cmd(TIM6, ENABLE);
 }
 
+/*
+ TIM6 handler is triggered by the timer above which is used as an interrupt.
+ This is every 1ms so it effectively puts the CPU sleep mode only for 1s.
+*/
 volatile uint8_t idle_sleep_cnt = 0;
 OSAL_IRQ_HANDLER(STM32_TIM6_HANDLER) {
     if (TIM_GetFlagStatus(TIM6, TIM_FLAG_Update) != ST_RESET) {
@@ -451,8 +459,7 @@ OSAL_IRQ_HANDLER(STM32_TIM6_HANDLER) {
 }
 
 // For this to work you need to call m_timer6_init() in ansi.c post kb init user.
-// That enables the STM32_TIM6_HANDLER but it always runs for some reason.
-// So... not sure what the purpose of this is.
+// That enables the STM32_TIM6_HANDLER but I think it runs on the interrupt interval of the TIM6 timer.
 void idle_enter_sleep(void) {
     TIM6->CNT      = 0;
     idle_sleep_cnt = 0;
