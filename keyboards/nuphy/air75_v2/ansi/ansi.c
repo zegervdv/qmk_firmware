@@ -37,8 +37,10 @@ extern uint8_t         rf_blink_cnt;
 
 /* qmk process record */
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-    no_act_time     = 0;
-    rf_linking_time = 0;
+    no_act_time       = 0;
+    rf_linking_time   = 0;
+    keyboard_protocol = 1;
+
     switch (keycode) {
         case RF_DFU:
             if (record->event.pressed) {
