@@ -619,12 +619,6 @@ void num_led_show(void) {
     bat_num_led(num_bat_temp);
 }
 
-void bat_led_close(void) {
-    for (int i = 20; i <= 29; i++) {
-        user_set_rgb_color(i, 0, 0, 0);
-    }
-}
-
 /**
  * @brief  bat_percent_led.
  */

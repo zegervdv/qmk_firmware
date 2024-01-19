@@ -46,6 +46,7 @@ uint16_t conkb_report            = 0;
 uint16_t syskb_report            = 0;
 uint8_t  sync_lost               = 0;
 uint8_t  disconnect_delay        = 0;
+uint32_t uart_rpt_timer          = 0;
 
 extern DEV_INFO_STRUCT dev_info;
 extern host_driver_t  *m_host_driver;
@@ -118,6 +119,7 @@ static void uart_auto_nkey_send(uint8_t *pre_bit_report, uint8_t *now_bit_report
 
     if (f_bit_send) {
         uart_send_report(CMD_RPT_BIT_KB, uart_bit_report_buf, 16);
+        if (f_byte_send) wait_us(200);
     }
 
     if (f_byte_send) {
@@ -130,16 +132,14 @@ static void uart_auto_nkey_send(uint8_t *pre_bit_report, uint8_t *now_bit_report
  * @note   Repeats the last sent key reports to reduce stuck keys once every 50ms if no activity.
  */
 void uart_send_report_repeat(void) {
-    static uint32_t interval_timer = 0;
-
     if (dev_info.link_mode == LINK_USB) return;
 
-    if (timer_elapsed32(interval_timer) >= 50) {
-        interval_timer = timer_read32();
+    if (timer_elapsed32(uart_rpt_timer) >= 50) {
+        uart_rpt_timer = timer_read32();
         if (no_act_time <= 50) { // increments every 10ms, 50 = 500ms
             if (f_byte_send) {
                 uart_send_report(CMD_RPT_BYTE_KB, bytekb_report_buf, 8);
-                wait_us(200);
+                if (f_bit_send) wait_us(200);
             }
 
             if (f_bit_send) {

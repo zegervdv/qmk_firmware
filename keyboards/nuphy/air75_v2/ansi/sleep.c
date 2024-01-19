@@ -68,12 +68,12 @@ void deep_sleep_handle(void) {
 void led_power_handle(void) {
     static uint32_t interval = 0;
 
-    if (timer_elapsed32(interval) < 2000) // only check once in a while, less flickering for unhandled cases
+    if (timer_elapsed32(interval) < 500) // only check once in a while, less flickering for unhandled cases
         return;
 
     interval = timer_read32();
 
-    if (rgb_led_last_act > 200) { // 10ms intervals
+    if (rgb_led_last_act > 100) { // 10ms intervals
         if (rgb_matrix_is_enabled()) {
             if (rgb_matrix_get_hsv().v == 0) { // brightness is 0
                 pwr_rgb_led_off();
@@ -85,7 +85,7 @@ void led_power_handle(void) {
         }
     }
 
-    if (side_led_last_act > 200) { // 10ms intervals
+    if (side_led_last_act > 100) { // 10ms intervals
         if (side_light == 0) {
             pwr_side_led_off();
         } else {
@@ -173,7 +173,7 @@ void sleep_handle(void) {
             f_goto_sleep = 1;
         }
     } else if (rf_linking_time >= user_config.rf_link_timeout) {
-        f_goto_sleep    = 1;
+        f_goto_sleep = 1;
     } else if (dev_info.rf_state == RF_DISCONNECT) {
         rf_disconnect_time++;
         if (rf_disconnect_time > 5 * 20) { // 5 seconds

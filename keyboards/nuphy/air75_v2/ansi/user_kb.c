@@ -416,7 +416,9 @@ void londing_eeprom_data(void) {
  * @brief Wrapper for rgb_matrix_set_color for sleep.c logic usage.
  */
 void user_set_rgb_color(int index, uint8_t red, uint8_t green, uint8_t blue) {
-    rgb_led_last_act = 0;
-    pwr_rgb_led_on(); // turn on LEDs
+    if (red || green || blue) {
+        rgb_led_last_act = 0;
+        pwr_rgb_led_on(); // turn on LEDs
+    }
     rgb_matrix_set_color(index, red, green, blue);
 }

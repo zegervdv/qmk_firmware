@@ -34,12 +34,14 @@ extern uint16_t        rf_linking_time;
 extern user_config_t   user_config;
 extern DEV_INFO_STRUCT dev_info;
 extern uint8_t         rf_blink_cnt;
+extern uint32_t        uart_rpt_timer;
 
 /* qmk process record */
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     no_act_time       = 0;
     rf_linking_time   = 0;
     keyboard_protocol = 1;
+    uart_rpt_timer    = timer_read32(); // reset uart repeat timer.
 
     switch (keycode) {
         case RF_DFU:
@@ -258,7 +260,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 }
 
 bool rgb_matrix_indicators_user(void) {
-    if (f_bat_num_show) {
+    if (f_bat_num_show || f_bat_hold) {
         num_led_show();
     }
 
