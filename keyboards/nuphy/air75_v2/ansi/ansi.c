@@ -261,7 +261,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
 bool rgb_matrix_indicators_user(void) {
     if (f_bat_num_show || f_bat_hold) {
-        num_led_show();
+        bat_pct_led_kb();
     }
 
     if (debug_enable) {
@@ -285,7 +285,7 @@ void keyboard_post_init_user(void) {
 
     break_all_key();
     dial_sw_fast_scan();
-    londing_eeprom_data();
+    load_eeprom_data();
 }
 
 /* qmk housekeeping task */

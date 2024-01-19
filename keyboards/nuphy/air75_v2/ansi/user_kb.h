@@ -125,7 +125,7 @@ typedef struct
     uint8_t rf_state;
     uint8_t rf_charge;
     uint8_t rf_led;
-    uint8_t rf_baterry;
+    uint8_t rf_battery;
     uint8_t sys_sw_state;
 } DEV_INFO_STRUCT;
 
@@ -154,7 +154,7 @@ void    side_colour_control(uint8_t dir);
 void    side_mode_control(uint8_t dir);
 void    side_led_show(void);
 void    sleep_handle(void);
-void    num_led_show(void);
+void    bat_pct_led_kb(void);
 void    rgb_test_show(void);
 void    gpio_init(void);
 void    long_press_key(void);
@@ -163,6 +163,6 @@ void    switch_dev_link(uint8_t mode);
 void    dial_sw_scan(void);
 void    dial_sw_fast_scan(void);
 void    timer_pro(void);
-void    londing_eeprom_data(void);
+void    load_eeprom_data(void);
 void    user_set_rgb_color(int index, uint8_t red, uint8_t green, uint8_t blue);
 uint8_t uart_send_cmd(uint8_t cmd, uint8_t ack_cnt, uint8_t delayms);

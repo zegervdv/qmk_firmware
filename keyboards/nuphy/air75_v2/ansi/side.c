@@ -571,55 +571,6 @@ void rf_led_show(void) {
 }
 
 /**
- * @brief  bat_num_led.
- */
-void bat_num_led(uint8_t bat_percent) {
-    uint8_t r, g, b;
-
-    if (bat_percent >= 100) {
-        bat_percent = 100;
-    }
-
-    uint8_t bat_pct_tens = bat_percent / 10;
-    uint8_t bat_pct_ones = bat_percent % 10;
-
-    // set color
-    if (bat_percent <= 15) {
-        r = 0xff;
-        g = 0x00;
-        b = 0x00;
-    } else if (bat_percent <= 50) {
-        r = 0xff;
-        g = 0x40;
-        b = 0x00;
-    } else if (bat_percent <= 80) {
-        r = 0xff;
-        g = 0xff;
-        b = 0x00;
-    } else {
-        r = 0x00;
-        g = 0xff;
-        b = 0x00;
-    }
-
-    // set F keys for battery percentage tens (e.g, 10%)
-    for (uint8_t i = 1; i <= bat_pct_tens; i++) {
-        user_set_rgb_color(i, r, g, b);
-    }
-
-    // set number row for battery percentage ones (e.g., 5 in 15%)
-    for (uint8_t i = 0; i < bat_pct_ones; i++) {
-        user_set_rgb_color(29 - i, r, g, b);
-    }
-}
-
-void num_led_show(void) {
-    static uint8_t num_bat_temp = 0;
-    num_bat_temp                = dev_info.rf_baterry;
-    bat_num_led(num_bat_temp);
-}
-
-/**
  * @brief  bat_percent_led.
  */
 void bat_percent_led(uint8_t bat_percent) {
@@ -678,7 +629,7 @@ void bat_led_show(void) {
         f_init        = 0;
         bat_show_time = timer_read32();
         charge_state  = dev_info.rf_charge;
-        bat_percent   = dev_info.rf_baterry;
+        bat_percent   = dev_info.rf_battery;
     }
 
     if (charge_state != dev_info.rf_charge) {
@@ -699,13 +650,13 @@ void bat_led_show(void) {
         if (charge_state == 0x03) { // charging, not full?
             bat_show_breath = true;
         } else if (charge_state & 0x01) { // charging
-            dev_info.rf_baterry = 100;
+            dev_info.rf_battery = 100;
         }
     }
 
-    if (bat_percent != dev_info.rf_baterry) {
+    if (bat_percent != dev_info.rf_battery) {
         if (timer_elapsed32(bat_per_debounce) > 1000) {
-            bat_percent = dev_info.rf_baterry;
+            bat_percent = dev_info.rf_battery;
         }
     } else {
         bat_per_debounce = timer_read32();

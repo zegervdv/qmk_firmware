@@ -23,9 +23,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 user_config_t   user_config;
 DEV_INFO_STRUCT dev_info = {
-    .rf_baterry = 100,
-    .link_mode  = LINK_USB,
-    .rf_state   = RF_IDLE,
+    .rf_battery   = 100,
+    .link_mode = LINK_USB,
+    .rf_state  = RF_IDLE,
 };
 bool f_bat_hold        = 0;
 bool f_sys_show        = 0;
@@ -387,9 +387,9 @@ void timer_pro(void) {
 }
 
 /**
- * @brief  londing eeprom data.
+ * @brief  load eeprom data.
  */
-void londing_eeprom_data(void) {
+void load_eeprom_data(void) {
     eeconfig_read_user_datablock(&user_config);
     if (user_config.default_brightness_flag != 0xA5) {
         /* first power on, set rgb matrix brightness at middle level*/
@@ -409,6 +409,50 @@ void londing_eeprom_data(void) {
         side_speed  = user_config.ee_side_speed;
         side_rgb    = user_config.ee_side_rgb;
         side_colour = user_config.ee_side_colour;
+    }
+}
+
+/**
+ * @brief  Show battery percentage LEDs
+ */
+void bat_pct_led_kb(void) {
+    uint8_t bat_percent = dev_info.rf_battery;
+    uint8_t r, g, b;
+
+    if (bat_percent >= 100) {
+        bat_percent = 100;
+    }
+
+    uint8_t bat_pct_tens = bat_percent / 10;
+    uint8_t bat_pct_ones = bat_percent % 10;
+
+    // set color
+    if (bat_percent <= 15) {
+        r = 0xff;
+        g = 0x00;
+        b = 0x00;
+    } else if (bat_percent <= 50) {
+        r = 0xff;
+        g = 0x40;
+        b = 0x00;
+    } else if (bat_percent <= 80) {
+        r = 0xff;
+        g = 0xff;
+        b = 0x00;
+    } else {
+        r = 0x00;
+        g = 0xff;
+        b = 0x00;
+    }
+
+    // set F keys for battery percentage tens (e.g, 10%)
+    for (uint8_t i = 1; i <= bat_pct_tens; i++) {
+        user_set_rgb_color(i, r, g, b);
+    }
+
+    // set number row for battery percentage ones (e.g., 5 in 15%)
+    for (uint8_t i = 0; i < bat_pct_ones; i++) {
+        user_set_rgb_color(29 - i, r, g, b);
     }
 }
 
