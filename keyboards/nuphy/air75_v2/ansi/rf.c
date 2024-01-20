@@ -208,8 +208,7 @@ void RF_Protocol_Receive(void) {
     uint8_t i, check_sum = 0;
 
     if (Usart_Mgr.RXDState == RX_Done) {
-        f_uart_ack = 1;
-        sync_lost  = 0;
+        sync_lost = 0;
 
         if (Usart_Mgr.RXDLen > 4) {
             for (i = 0; i < RX_LEN; i++)
@@ -420,8 +419,9 @@ uint8_t uart_send_cmd(uint8_t cmd, uint8_t wait_ack, uint8_t delayms) {
 
     if (wait_ack) {
         while (wait_ack--) {
-            wait_ms(1);
+            uart_receive_pro();
             if (f_uart_ack) return TX_OK;
+            wait_ms(1);
         }
     } else {
         return TX_OK;
