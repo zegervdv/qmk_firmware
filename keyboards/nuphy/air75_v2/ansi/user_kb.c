@@ -20,12 +20,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "usb_main.h"
 #include "rf_driver.h"
 #include "mcu_pwr.h"
+#include "color.h"
 
 user_config_t   user_config;
 DEV_INFO_STRUCT dev_info = {
-    .rf_battery   = 100,
-    .link_mode = LINK_USB,
-    .rf_state  = RF_IDLE,
+    .rf_battery = 100,
+    .link_mode  = LINK_USB,
+    .rf_state   = RF_IDLE,
 };
 bool f_bat_hold        = 0;
 bool f_sys_show        = 0;
@@ -417,7 +418,6 @@ void load_eeprom_data(void) {
  */
 void bat_pct_led_kb(void) {
     uint8_t bat_percent = dev_info.rf_battery;
-    uint8_t r, g, b;
 
     if (bat_percent >= 100) {
         bat_percent = 100;
@@ -425,35 +425,38 @@ void bat_pct_led_kb(void) {
 
     uint8_t bat_pct_tens = bat_percent / 10;
     uint8_t bat_pct_ones = bat_percent % 10;
-
-    // set color
-    if (bat_percent <= 15) {
-        r = 0xff;
-        g = 0x00;
-        b = 0x00;
-    } else if (bat_percent <= 50) {
-        r = 0xff;
-        g = 0x40;
-        b = 0x00;
-    } else if (bat_percent <= 80) {
-        r = 0xff;
-        g = 0xff;
-        b = 0x00;
-    } else {
-        r = 0x00;
-        g = 0xff;
-        b = 0x00;
-    }
+    RGB     rgb          = bat_pct_rgb(bat_percent);
 
     // set F keys for battery percentage tens (e.g, 10%)
     for (uint8_t i = 1; i <= bat_pct_tens; i++) {
-        user_set_rgb_color(i, r, g, b);
+        user_set_rgb_color(i, rgb.r, rgb.g, rgb.b);
     }
 
     // set number row for battery percentage ones (e.g., 5 in 15%)
     for (uint8_t i = 0; i < bat_pct_ones; i++) {
-        user_set_rgb_color(29 - i, r, g, b);
+        user_set_rgb_color(29 - i, rgb.r, rgb.g, rgb.b);
     }
+}
+
+/**
+ * @brief Calculate RGB value for current bat percentage.
+*/
+RGB bat_pct_rgb(uint8_t bat_pct) {
+    // set color - gradient from green to red through yellow.
+    if (bat_pct > 100) {
+        bat_pct = 100;
+    }
+    // 120 hue is green, 0 is red on a 360 degree wheel but QMK is a uint8_t
+    // so it needs to convert to relative to 255 - so green is actually 85.
+    uint8_t h = (85 * bat_pct) / 100;
+
+    HSV hsv = {
+        .h = h,
+        .s = 255,
+        .v = 192, // 75% max brightness
+    };
+
+    return hsv_to_rgb(hsv);
 }
 
 /**

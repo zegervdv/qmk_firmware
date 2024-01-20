@@ -318,13 +318,13 @@ void sleep_sw_led_show(void) {
 void sys_led_show(void) {
     if (dev_info.link_mode == LINK_USB) {
         if (host_keyboard_led_state().caps_lock) {
-            set_left_rgb(0X00, 0x80, 0x80);
+            set_left_rgb(0x00, 0x80, 0x80);
         }
     }
 
     else {
         if (dev_info.rf_led & 0x02) {
-            set_left_rgb(0X00, 0x80, 0x80);
+            set_left_rgb(0x00, 0x80, 0x80);
         }
     }
 }
@@ -575,34 +575,27 @@ void rf_led_show(void) {
  */
 void bat_percent_led(uint8_t bat_percent) {
     uint8_t bat_end_led = 0;
-    uint8_t bat_r, bat_g, bat_b;
 
+    RGB rgb = bat_pct_rgb(bat_percent);
     if (bat_percent <= 15) {
         bat_end_led = 0;
-        bat_r = 0x80, bat_g = 0, bat_b = 0;
     } else if (bat_percent <= 20) {
         bat_end_led = 1;
-        bat_r = 0x80, bat_g = 0x40, bat_b = 0;
     } else if (bat_percent <= 40) {
         bat_end_led = 2;
-        bat_r = 0x80, bat_g = 0x40, bat_b = 0;
     } else if (bat_percent <= 60) {
         bat_end_led = 3;
-        bat_r = 0x80, bat_g = 0x40, bat_b = 0;
     } else if (bat_percent <= 80) {
         bat_end_led = 4;
-        bat_r = 0x80, bat_g = 0x40, bat_b = 0;
     } else if (bat_percent <= 95) {
         bat_end_led = 5;
-        bat_r = 0x80, bat_g = 0x40, bat_b = 0;
     } else {
         bat_end_led = 5;
-        bat_r = 0, bat_g = 0x80, bat_b = 0;
     }
 
     uint8_t i = 0;
     for (; i <= bat_end_led; i++)
-        side_rgb_set_color(11 - i, bat_r >> 2, bat_g >> 2, bat_b >> 2);
+        side_rgb_set_color(11 - i, rgb.r >> 2, rgb.g >> 2, rgb.b >> 2);
 
     for (; i < 6; i++)
         side_rgb_set_color(11 - i, 0, 0, 0);
