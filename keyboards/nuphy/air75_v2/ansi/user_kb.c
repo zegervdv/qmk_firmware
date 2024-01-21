@@ -51,6 +51,7 @@ uint16_t       rgb_test_press_delay  = 0;
 uint16_t       rgb_led_last_act      = 0;
 uint16_t       side_led_last_act     = 0;
 host_driver_t *m_host_driver         = 0;
+RGB            bat_pct_rgb           = {.r = 0x80, .g = 0x80, .b = 0x00};
 
 extern bool               f_rf_new_adv_ok;
 extern report_keyboard_t *keyboard_report;
@@ -425,24 +426,25 @@ void bat_pct_led_kb(void) {
 
     uint8_t bat_pct_tens = bat_percent / 10;
     uint8_t bat_pct_ones = bat_percent % 10;
-    RGB     rgb          = bat_pct_rgb(bat_percent);
 
     // set F keys for battery percentage tens (e.g, 10%)
     for (uint8_t i = 1; i <= bat_pct_tens; i++) {
-        user_set_rgb_color(i, rgb.r, rgb.g, rgb.b);
+        user_set_rgb_color(i, bat_pct_rgb.r, bat_pct_rgb.g, bat_pct_rgb.b);
     }
 
     // set number row for battery percentage ones (e.g., 5 in 15%)
     for (uint8_t i = 0; i < bat_pct_ones; i++) {
-        user_set_rgb_color(29 - i, rgb.r, rgb.g, rgb.b);
+        user_set_rgb_color(29 - i, bat_pct_rgb.r, bat_pct_rgb.g, bat_pct_rgb.b);
     }
 }
 
 /**
- * @brief Calculate RGB value for current bat percentage.
-*/
-RGB bat_pct_rgb(uint8_t bat_pct) {
-    // set color - gradient from green to red through yellow.
+ * @brief Updates RGB value for current bat percentage.
+ *        Color gradient from green to red through yellow.
+ */
+void update_bat_pct_rgb(void) {
+    uint8_t bat_pct = dev_info.rf_battery;
+
     if (bat_pct > 100) {
         bat_pct = 100;
     }
@@ -456,7 +458,7 @@ RGB bat_pct_rgb(uint8_t bat_pct) {
         .v = 192, // 75% max brightness
     };
 
-    return hsv_to_rgb(hsv);
+    bat_pct_rgb = hsv_to_rgb(hsv);
 }
 
 /**

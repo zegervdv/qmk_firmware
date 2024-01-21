@@ -86,6 +86,7 @@ extern uint16_t        side_led_last_act;
 extern bool            f_bat_hold;
 extern bool            f_sys_show;
 extern bool            f_sleep_show;
+extern RGB             bat_pct_rgb;
 
 void side_ws2812_setleds(rgb_led_t *ledarray, uint16_t leds);
 void rgb_matrix_update_pwm_buffers(void);
@@ -573,10 +574,10 @@ void rf_led_show(void) {
 /**
  * @brief  bat_percent_led.
  */
-void bat_percent_led(uint8_t bat_percent) {
+void bat_percent_led(void) {
     uint8_t bat_end_led = 0;
+    uint8_t bat_percent = dev_info.rf_battery;
 
-    RGB rgb = bat_pct_rgb(bat_percent);
     if (bat_percent <= 15) {
         bat_end_led = 0;
     } else if (bat_percent <= 20) {
@@ -595,7 +596,7 @@ void bat_percent_led(uint8_t bat_percent) {
 
     uint8_t i = 0;
     for (; i <= bat_end_led; i++)
-        side_rgb_set_color(11 - i, rgb.r >> 2, rgb.g >> 2, rgb.b >> 2);
+        side_rgb_set_color(11 - i, bat_pct_rgb.r >> 2, bat_pct_rgb.g >> 2, bat_pct_rgb.b >> 2);
 
     for (; i < 6; i++)
         side_rgb_set_color(11 - i, 0, 0, 0);
@@ -614,15 +615,12 @@ void bat_led_show(void) {
     static uint32_t bat_show_time  = 0;
 
     static uint32_t bat_sts_debounce = 0;
-    static uint32_t bat_per_debounce = 0;
     static uint8_t  charge_state     = 0;
-    static uint8_t  bat_percent      = 0;
 
     if (f_init) {
         f_init        = 0;
         bat_show_time = timer_read32();
         charge_state  = dev_info.rf_charge;
-        bat_percent   = dev_info.rf_battery;
     }
 
     if (charge_state != dev_info.rf_charge) {
@@ -647,16 +645,9 @@ void bat_led_show(void) {
         }
     }
 
-    if (bat_percent != dev_info.rf_battery) {
-        if (timer_elapsed32(bat_per_debounce) > 1000) {
-            bat_percent = dev_info.rf_battery;
-        }
-    } else {
-        bat_per_debounce = timer_read32();
-        if (bat_percent < 15) {
-            bat_show_flag = true;
-            bat_show_time = timer_read32();
-        }
+    if (dev_info.rf_battery < 15) {
+        bat_show_flag = true;
+        bat_show_time = timer_read32();
     }
 
     if (f_bat_hold || bat_show_flag) {
@@ -671,7 +662,7 @@ void bat_led_show(void) {
             count_rgb_light(breathe_data_tab[play_point]);
             set_right_rgb(r_temp, g_temp, b_temp);
         } else {
-            bat_percent_led(bat_percent);
+            bat_percent_led();
         }
     }
 }
