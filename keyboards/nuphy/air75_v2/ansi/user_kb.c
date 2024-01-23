@@ -455,10 +455,10 @@ void update_bat_pct_rgb(void) {
     HSV hsv = {
         .h = h,
         .s = 255,
-        .v = 192, // 75% max brightness
+        .v = 128, // 50% max brightness
     };
 
-    bat_pct_rgb = hsv_to_rgb(hsv);
+    bat_pct_rgb = hsv_to_rgb_nocie(hsv); // this results in same calculation as colour pickers.
 }
 
 /**

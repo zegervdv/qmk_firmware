@@ -265,12 +265,12 @@ bool rgb_matrix_indicators_user(void) {
     }
 
     if (debug_enable) {
-        user_set_rgb_color(56, 0xFF, 0x00, 0x00);
+        user_set_rgb_color(56, 0x80, 0x00, 0x00);
     }
 
     // light up corresponding BT mode key during connnection
     if (rf_blink_cnt && dev_info.link_mode >= LINK_BT_1 && dev_info.link_mode <= LINK_BT_3) {
-        user_set_rgb_color(30 - dev_info.link_mode, 0, 0, 0xFF);
+        user_set_rgb_color(30 - dev_info.link_mode, 0, 0, 0x80);
     }
 
     return true;
