@@ -37,11 +37,15 @@ extern uint8_t         rf_blink_cnt;
 extern uint32_t        uart_rpt_timer;
 
 /* qmk process record */
-bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
     no_act_time       = 0;
     rf_linking_time   = 0;
     keyboard_protocol = 1;
     uart_rpt_timer    = timer_read32(); // reset uart repeat timer.
+
+    if (!process_record_user(keycode, record)) {
+        return false;
+    }
 
     switch (keycode) {
         case RF_DFU:
@@ -257,9 +261,14 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         default:
             return true;
     }
+    return true;
 }
 
-bool rgb_matrix_indicators_user(void) {
+bool rgb_matrix_indicators_kb(void) {
+    if (!rgb_matrix_indicators_user()) {
+        return false;
+    }
+
     if (f_bat_num_show || f_bat_hold) {
         bat_pct_led_kb();
     }
@@ -277,7 +286,7 @@ bool rgb_matrix_indicators_user(void) {
 }
 
 /* qmk keyboard post init */
-void keyboard_post_init_user(void) {
+void keyboard_post_init_kb(void) {
     gpio_init();
     rf_uart_init();
     wait_ms(500);
@@ -286,10 +295,11 @@ void keyboard_post_init_user(void) {
     break_all_key();
     dial_sw_fast_scan();
     load_eeprom_data();
+    keyboard_post_init_user();
 }
 
 /* qmk housekeeping task */
-void housekeeping_task_user(void) {
+void housekeeping_task_kb(void) {
     timer_pro();
 
     uart_receive_pro();
