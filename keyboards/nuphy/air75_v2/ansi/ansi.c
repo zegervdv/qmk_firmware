@@ -302,9 +302,9 @@ void keyboard_post_init_kb(void) {
 void housekeeping_task_kb(void) {
     timer_pro();
 
-    uart_receive_pro();
-
     uart_send_report_repeat();
+
+    uart_receive_pro();
 
     dev_sts_sync();
 

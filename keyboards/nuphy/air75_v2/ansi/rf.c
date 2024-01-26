@@ -490,6 +490,7 @@ void dev_sts_sync(void) {
     }
 
     uart_send_cmd(CMD_RF_STS_SYSC, 1, 1);
+    uart_receive_pro();
 
     if (dev_info.link_mode != LINK_USB) {
         if (++sync_lost >= 5) {
