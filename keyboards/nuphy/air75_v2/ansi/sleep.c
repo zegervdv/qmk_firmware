@@ -32,7 +32,7 @@ extern uint8_t         side_light;
 extern uint16_t        rgb_led_last_act;
 extern uint16_t        side_led_last_act;
 
-extern uint8_t bitkb_report_buf[32];
+extern uint8_t bitkb_report_buf[16];
 extern uint8_t bytekb_report_buf[8];
 
 bool is_side_rgb_off(void);

@@ -56,8 +56,6 @@ RGB            bat_pct_rgb           = {.r = 0x80, .g = 0x80, .b = 0x00};
 extern bool               f_rf_new_adv_ok;
 extern report_keyboard_t *keyboard_report;
 extern report_nkro_t     *nkro_report;
-extern uint8_t            bitkb_report_buf[32];
-extern uint8_t            bytekb_report_buf[8];
 extern uint8_t            side_mode;
 extern uint8_t            side_light;
 extern uint8_t            side_speed;
@@ -394,8 +392,8 @@ void timer_pro(void) {
 void load_eeprom_data(void) {
     eeconfig_read_user_datablock(&user_config);
     if (user_config.default_brightness_flag != 0xA5) {
-        /* first power on, set rgb matrix brightness at middle level*/
-        rgb_matrix_sethsv(255, 255, RGB_MATRIX_MAXIMUM_BRIGHTNESS - RGB_MATRIX_VAL_STEP * 2);
+        /* first power on, set rgb matrix brightness off */
+        rgb_matrix_sethsv(255, 255, 0);
         user_config.default_brightness_flag = 0xA5;
         user_config.ee_side_mode            = side_mode;
         user_config.ee_side_light           = side_light;
@@ -403,7 +401,7 @@ void load_eeprom_data(void) {
         user_config.ee_side_rgb             = side_rgb;
         user_config.ee_side_colour          = side_colour;
         user_config.sleep_enable            = true;
-        user_config.rf_link_timeout         = LINK_TIMEOUT;
+        user_config.rf_link_timeout         = LINK_TIMEOUT_ALT;
         eeconfig_update_user_datablock(&user_config);
     } else {
         side_mode   = user_config.ee_side_mode;

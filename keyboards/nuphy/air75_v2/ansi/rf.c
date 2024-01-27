@@ -38,9 +38,9 @@ bool f_wakeup_prepare  = 0;
 bool f_bit_send        = 0;
 bool f_byte_send       = 0;
 
-uint8_t  uart_bit_report_buf[32] = {0};
+uint8_t  uart_bit_report_buf[16] = {0};
 uint8_t  func_tab[32]            = {0};
-uint8_t  bitkb_report_buf[32]    = {0};
+uint8_t  bitkb_report_buf[16]    = {0};
 uint8_t  bytekb_report_buf[8]    = {0};
 uint16_t conkb_report            = 0;
 uint16_t syskb_report            = 0;
@@ -197,8 +197,8 @@ void uart_send_report_keyboard(report_keyboard_t *report) {
  */
 void uart_send_report_nkro(report_nkro_t *report) {
     no_act_time = 0;
-    uart_auto_nkey_send(bitkb_report_buf, &nkro_report->mods, NKRO_REPORT_BITS + 1);
-    memcpy(&bitkb_report_buf[0], &nkro_report->mods, NKRO_REPORT_BITS + 1);
+    uart_auto_nkey_send(bitkb_report_buf, &nkro_report->mods, 16); // only need 1 byte mod + 15 byte keys
+    memcpy(&bitkb_report_buf[0], &nkro_report->mods, 16);
 }
 
 /**
