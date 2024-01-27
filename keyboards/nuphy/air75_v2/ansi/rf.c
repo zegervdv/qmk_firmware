@@ -117,13 +117,13 @@ static void uart_auto_nkey_send(uint8_t *pre_bit_report, uint8_t *now_bit_report
         }
     }
 
-    if (f_bit_send) {
-        uart_send_report(CMD_RPT_BIT_KB, uart_bit_report_buf, 16);
-        if (f_byte_send) wait_us(200);
-    }
-
     if (f_byte_send) {
         uart_send_report(CMD_RPT_BYTE_KB, bytekb_report_buf, 8);
+        if (f_bit_send) wait_us(200);
+    }
+
+    if (f_bit_send) {
+        uart_send_report(CMD_RPT_BIT_KB, uart_bit_report_buf, 16);
     }
 }
 
@@ -137,13 +137,13 @@ void uart_send_report_repeat(void) {
     if (timer_elapsed32(uart_rpt_timer) >= 25) {
         uart_rpt_timer = timer_read32();
         if (no_act_time <= 50) { // increments every 10ms, 50 = 500ms
-            if (f_bit_send) {
-                uart_send_report(CMD_RPT_BIT_KB, uart_bit_report_buf, 16);
-                if (f_byte_send) wait_us(200);
-            }
-
             if (f_byte_send) {
                 uart_send_report(CMD_RPT_BYTE_KB, bytekb_report_buf, 8);
+                if (f_bit_send) wait_us(200);
+            }
+
+            if (f_bit_send) {
+                uart_send_report(CMD_RPT_BIT_KB, uart_bit_report_buf, 16);
             }
         } else {
             f_byte_send = 0;
