@@ -47,6 +47,7 @@ void deep_sleep_handle(void) {
 
     // Visual cue for deep sleep on side LED.
     pwr_side_led_on();
+    wait_ms(50); // give some time to ensure LED powers on.
     set_left_rgb(0x99, 0x00, 0x00);
     set_right_rgb(0x99, 0x00, 0x00);
     side_rgb_refresh();
@@ -116,9 +117,8 @@ void sleep_handle(void) {
         rf_disconnect_time = 0;
         rf_linking_time    = 0;
 
-        bool deep_sleep = 0;
         if (user_config.sleep_enable) {
-            deep_sleep = 1;
+            bool deep_sleep = 1;
             // light sleep if charging? Charging event might keep waking MCU. To be confirmed...
             if (dev_info.rf_charge & 0x01) {
                 deep_sleep = 0;
@@ -128,15 +128,15 @@ void sleep_handle(void) {
             else if (dev_info.link_mode == LINK_USB && USB_DRIVER.state == USB_SUSPENDED) {
                 deep_sleep = 0;
             }
-        }
 
-        if (deep_sleep) {
-            deep_sleep_handle();
-            return; // don't need to do anything else
-        } else {
-            enter_light_sleep();
-            f_wakeup_prepare = 1;
+            if (deep_sleep) {
+                deep_sleep_handle();
+                return; // don't need to do anything else
+            } else {
+                enter_light_sleep();
+            }
         }
+        f_wakeup_prepare = 1; // only if light sleep.
     }
 
     // wakeup check
@@ -148,7 +148,7 @@ void sleep_handle(void) {
         }
         // No longer charging? Go deep sleep.
         // TODO: don't really know true charge bit logic. I'm just guessing here.
-        else if ((dev_info.rf_charge & 0x01) == 0) {
+        else if (user_config.sleep_enable && (dev_info.rf_charge & 0x01) == 0) {
             f_wakeup_prepare = 0;
             deep_sleep_handle();
             return;
@@ -167,11 +167,8 @@ void sleep_handle(void) {
         } else {
             usb_suspend_debounce = 0;
         }
-    } else if (dev_info.rf_state == RF_CONNECT) {
-        rf_disconnect_time = 0;
-        if (no_act_time >= SLEEP_TIME_DELAY) {
-            f_goto_sleep = 1;
-        }
+    } else if (no_act_time >= SLEEP_TIME_DELAY) {
+        f_goto_sleep = 1;
     } else if (rf_linking_time >= user_config.rf_link_timeout) {
         f_goto_sleep = 1;
     } else if (dev_info.rf_state == RF_DISCONNECT) {
@@ -179,5 +176,7 @@ void sleep_handle(void) {
         if (rf_disconnect_time > 5 * 20) { // 5 seconds
             f_goto_sleep = 1;
         }
+    } else if (dev_info.rf_state == RF_CONNECT) {
+        rf_disconnect_time = 0;
     }
 }
