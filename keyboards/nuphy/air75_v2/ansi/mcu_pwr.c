@@ -11,6 +11,7 @@ extern DEV_INFO_STRUCT dev_info;
 static bool f_usb_deinit         = 0;
 static bool side_led_powered_off = 0;
 static bool rgb_led_powered_off  = 0;
+static bool tim6_enabled         = false;
 
 /** ================================================================
  * @brief   UART_GPIO 翻转速率配置低速+上拉
@@ -90,7 +91,7 @@ void enter_deep_sleep(void) {
     }
 
     // 关闭定时器
-    TIM_Cmd(TIM6, DISABLE);
+    if (tim6_enabled) TIM_Cmd(TIM6, DISABLE);
 
     //------------------------ 配置按键唤醒
     setPinOutput(KCOL_0);
@@ -199,7 +200,11 @@ void exit_deep_sleep(void) {
     setPinInputHigh(DEV_MODE_PIN); // PC0
     setPinInputHigh(SYS_MODE_PIN); // PC1
 
+    /* Wake RF module? Not sure if this works... */
     setPinOutput(NRF_WAKEUP_PIN);
+    writePinLow(NRF_WAKEUP_PIN);
+    wait_us(50);
+    writePinHigh(NRF_WAKEUP_PIN);
 
     // power on LEDs This is missing from Nuphy's logic.
     led_pwr_wake_handle();
@@ -208,7 +213,7 @@ void exit_deep_sleep(void) {
     stm32_clock_init();
 
     /* TIM6 使能 */
-    TIM_Cmd(TIM6, ENABLE);
+    if (tim6_enabled) TIM_Cmd(TIM6, ENABLE);
 
     // 发送一个握手唤醒RF
     uart_send_cmd(CMD_HAND, 0, 1); // 握手
@@ -444,6 +449,8 @@ void m_timer6_init(void) {
 
     /* TIM6 使能 */
     TIM_Cmd(TIM6, ENABLE);
+
+    tim6_enabled = true;
 }
 
 /*
