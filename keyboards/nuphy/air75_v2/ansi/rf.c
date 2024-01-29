@@ -458,8 +458,8 @@ void dev_sts_sync(void) {
     if (dev_info.link_mode == LINK_USB) {
         if (host_mode != HOST_USB_TYPE) {
             host_mode = HOST_USB_TYPE;
-            host_set_driver(m_host_driver);
             break_all_key();
+            host_set_driver(m_host_driver);
         }
         rf_blink_cnt = 0;
     } else {
@@ -489,7 +489,10 @@ void dev_sts_sync(void) {
         }
     }
 
-    uart_send_cmd(CMD_RF_STS_SYSC, 1, 1);
+    /** This is called in house keeping with 1ms delay and
+     *  1ms wait time originally. Set to 0 to not hold up housekeeping.
+    */
+    uart_send_cmd(CMD_RF_STS_SYSC, 0, 0);
     uart_receive_pro();
 
     if (dev_info.link_mode != LINK_USB) {
