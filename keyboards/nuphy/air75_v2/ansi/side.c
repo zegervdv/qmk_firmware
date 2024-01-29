@@ -317,16 +317,8 @@ void sleep_sw_led_show(void) {
  * @brief  sys_led_show.
  */
 void sys_led_show(void) {
-    if (dev_info.link_mode == LINK_USB) {
-        if (host_keyboard_led_state().caps_lock) {
-            set_left_rgb(0x00, 0x80, 0x80);
-        }
-    }
-
-    else {
-        if (dev_info.rf_led & 0x02) {
-            set_left_rgb(0x00, 0x80, 0x80);
-        }
+    if (host_keyboard_led_state().caps_lock) {
+        set_left_rgb(0x00, 0x80, 0x80);
     }
 }
 
