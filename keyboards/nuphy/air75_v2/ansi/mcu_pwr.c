@@ -216,7 +216,7 @@ void exit_deep_sleep(void) {
     if (tim6_enabled) TIM_Cmd(TIM6, ENABLE);
 
     // 发送一个握手唤醒RF
-    uart_send_cmd(CMD_HAND, 0, 1); // 握手
+    uart_send_cmd(CMD_HAND, 1, 0); // 握手
 
     // Should re-init USB regardless probably if it was deinitialized.
     if (f_usb_deinit) {
@@ -247,7 +247,7 @@ void enter_light_sleep(void) {
 void exit_light_sleep(void) {
     led_pwr_wake_handle();
 
-    uart_send_cmd(CMD_HAND, 0, 1);
+    uart_send_cmd(CMD_HAND, 1, 0);
 
     if (dev_info.link_mode == LINK_USB) {
         usb_lld_wakeup_host(&USB_DRIVER);
