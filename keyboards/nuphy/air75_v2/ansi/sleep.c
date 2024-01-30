@@ -144,7 +144,7 @@ void sleep_handle(void) {
     if (f_wakeup_prepare) {
         if (no_act_time < 10) { // activity wake up
             f_wakeup_prepare = 0;
-            exit_light_sleep();
+            if (user_config.sleep_enable) exit_light_sleep();
         }
         // No longer charging? Go deep sleep.
         // TODO: don't really know true charge bit logic. I'm just guessing here.
