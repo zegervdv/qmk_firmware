@@ -204,9 +204,6 @@ void exit_deep_sleep(void) {
 
     /* Wake RF module? Not sure if this works... */
     setPinOutput(NRF_WAKEUP_PIN);
-    writePinLow(NRF_WAKEUP_PIN);
-    wait_us(50);
-    writePinHigh(NRF_WAKEUP_PIN);
 
     // power on LEDs This is missing from Nuphy's logic.
     led_pwr_wake_handle();

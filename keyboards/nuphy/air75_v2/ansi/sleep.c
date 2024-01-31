@@ -53,6 +53,9 @@ void deep_sleep_handle(void) {
     side_rgb_refresh();
     wait_ms(500);
 
+    // Sync again before sleeping
+    dev_sts_sync();
+    
     enter_deep_sleep(); // puts the board in WFI mode and pauses the MCU
     exit_deep_sleep();  // This gets called when there is an interrupt (wake) event.
 
