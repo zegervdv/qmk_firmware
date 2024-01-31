@@ -165,5 +165,6 @@ void    dial_sw_scan(void);
 void    dial_sw_fast_scan(void);
 void    timer_pro(void);
 void    load_eeprom_data(void);
+void    user_config_reset(void);
 void    user_set_rgb_color(int index, uint8_t red, uint8_t green, uint8_t blue);
 uint8_t uart_send_cmd(uint8_t cmd, uint8_t ack_cnt, uint8_t delayms);

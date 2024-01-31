@@ -392,17 +392,7 @@ void timer_pro(void) {
 void load_eeprom_data(void) {
     eeconfig_read_user_datablock(&user_config);
     if (user_config.default_brightness_flag != 0xA5) {
-        /* first power on, set rgb matrix brightness off */
-        rgb_matrix_sethsv(255, 255, 0);
-        user_config.default_brightness_flag = 0xA5;
-        user_config.ee_side_mode            = side_mode;
-        user_config.ee_side_light           = side_light;
-        user_config.ee_side_speed           = side_speed;
-        user_config.ee_side_rgb             = side_rgb;
-        user_config.ee_side_colour          = side_colour;
-        user_config.sleep_enable            = true;
-        user_config.rf_link_timeout         = LINK_TIMEOUT_ALT;
-        eeconfig_update_user_datablock(&user_config);
+        user_config_reset();
     } else {
         side_mode   = user_config.ee_side_mode;
         side_light  = user_config.ee_side_light;
@@ -410,6 +400,30 @@ void load_eeprom_data(void) {
         side_rgb    = user_config.ee_side_rgb;
         side_colour = user_config.ee_side_colour;
     }
+}
+
+/**
+ * @brief User config to default setting.
+ */
+void user_config_reset(void) {
+    side_mode   = 0;
+    side_light  = 1;
+    side_speed  = 2;
+    side_rgb    = 1;
+    side_colour = 0;
+
+    /* first power on, set rgb matrix brightness off */
+    rgb_matrix_sethsv(255, 255, 0);
+
+    user_config.default_brightness_flag = 0xA5;
+    user_config.ee_side_mode            = side_mode;
+    user_config.ee_side_light           = side_light;
+    user_config.ee_side_speed           = side_speed;
+    user_config.ee_side_rgb             = side_rgb;
+    user_config.ee_side_colour          = side_colour;
+    user_config.sleep_enable            = true;
+    user_config.rf_link_timeout         = LINK_TIMEOUT_ALT;
+    eeconfig_update_user_datablock(&user_config);
 }
 
 /**

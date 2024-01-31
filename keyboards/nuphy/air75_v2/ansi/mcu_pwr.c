@@ -13,6 +13,9 @@ static bool side_led_powered_off = 0;
 static bool rgb_led_powered_off  = 0;
 static bool tim6_enabled         = false;
 
+static bool rgb_led_on  = 0;
+static bool side_led_on = 0;
+
 /** ================================================================
  * @brief   UART_GPIO 翻转速率配置低速+上拉
  ================================================================*/
@@ -55,7 +58,6 @@ void m_deinit_usb_072(void) {
  ================================================================*/
 #include "hal_usb.h"
 #include "usb_main.h"
-void idle_enter_sleep(void);
 void SYSCFG_EXTILineConfig(uint8_t EXTI_PortSourceGPIOx, uint8_t EXTI_PinSourcex) {
     uint32_t tmp = 0x00;
 
@@ -279,9 +281,6 @@ void led_pwr_wake_handle(void) {
         pwr_side_led_on();
     }
 }
-
-static bool rgb_led_on  = 0;
-static bool side_led_on = 0;
 
 void pwr_rgb_led_off(void) {
     if (!rgb_led_on) return;

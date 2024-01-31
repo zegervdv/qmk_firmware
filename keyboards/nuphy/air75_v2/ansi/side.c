@@ -570,7 +570,7 @@ void bat_percent_led(void) {
     uint8_t bat_end_led = 0;
     uint8_t bat_percent = dev_info.rf_battery;
 
-    if (bat_percent <= 15) {
+    if (bat_percent <= 10) {
         bat_end_led = 0;
     } else if (bat_percent <= 20) {
         bat_end_led = 1;
@@ -580,8 +580,6 @@ void bat_percent_led(void) {
         bat_end_led = 3;
     } else if (bat_percent <= 80) {
         bat_end_led = 4;
-    } else if (bat_percent <= 95) {
-        bat_end_led = 5;
     } else {
         bat_end_led = 5;
     }
@@ -687,13 +685,7 @@ void device_reset_show(void) {
  * @brief  device_reset_init.
  */
 void device_reset_init(void) {
-    side_mode       = 0;
-    side_light      = 1;
-    side_speed      = 2;
-    side_rgb        = 1;
-    side_colour     = 0;
     side_play_point = 0;
-
     side_play_cnt   = 0;
     side_play_timer = timer_read32();
 
@@ -702,17 +694,8 @@ void device_reset_init(void) {
     rgb_matrix_enable();
     rgb_matrix_mode(RGB_MATRIX_CYCLE_LEFT_RIGHT);
     rgb_matrix_set_speed(255 - RGB_MATRIX_SPD_STEP * 2);
-    rgb_matrix_sethsv(255, 255, 0); // start with LED's off.
 
-    user_config.default_brightness_flag = 0xA5;
-    user_config.ee_side_mode            = side_mode;
-    user_config.ee_side_light           = side_light;
-    user_config.ee_side_speed           = side_speed;
-    user_config.ee_side_rgb             = side_rgb;
-    user_config.ee_side_colour          = side_colour;
-    user_config.sleep_enable            = true;
-    user_config.rf_link_timeout         = LINK_TIMEOUT_ALT;
-    eeconfig_update_user_datablock(&user_config);
+    user_config_reset();
 }
 
 /**
@@ -723,55 +706,28 @@ void rgb_test_show(void) {
     pwr_rgb_led_on();
     pwr_side_led_on();
 
-    // set test color
-    rgb_matrix_set_color_all(0xFF, 0x00, 0x00);
-    rgb_matrix_update_pwm_buffers();
-    set_left_rgb(0xff, 0x00, 0x00);
-    set_right_rgb(0xff, 0x00, 0x00);
-    side_rgb_refresh();
-    wait_ms(500);
+    uint8_t colours[7][3] = {
+        { 0xFF, 0x00, 0x00 },
+        { 0x00, 0xFF, 0x00 },
+        { 0x00, 0x00, 0xFF },
+        { 0x80, 0x80, 0x80 },
+        { 0x80, 0x80, 0x00 },
+        { 0x80, 0x00, 0x80 },
+        { 0x00, 0x80, 0x80 }
+    };
 
-    rgb_matrix_set_color_all(0x00, 0xFF, 0x00);
-    rgb_matrix_update_pwm_buffers();
-    set_left_rgb(0x00, 0xFF, 0x00);
-    set_right_rgb(0x00, 0xFF, 0x00);
-    side_rgb_refresh();
-    wait_ms(500);
+    for (uint8_t i = 0; i < 7; i++) {
+        uint8_t r = colours[i][0];
+        uint8_t g = colours[i][1];
+        uint8_t b = colours[i][2];
 
-    rgb_matrix_set_color_all(0x00, 0x00, 0xFF);
-    rgb_matrix_update_pwm_buffers();
-    set_left_rgb(0x00, 0x00, 0xFF);
-    set_right_rgb(0x00, 0x00, 0xFF);
-    side_rgb_refresh();
-    wait_ms(500);
-
-    rgb_matrix_set_color_all(0x80, 0x80, 0x80);
-    rgb_matrix_update_pwm_buffers();
-    set_left_rgb(0x80, 0x80, 0x80);
-    set_right_rgb(0x80, 0x80, 0x80);
-    side_rgb_refresh();
-    wait_ms(500);
-
-    rgb_matrix_set_color_all(0x80, 0x80, 0x00);
-    rgb_matrix_update_pwm_buffers();
-    set_left_rgb(0x80, 0x80, 0x00);
-    set_right_rgb(0x80, 0x80, 0x00);
-    side_rgb_refresh();
-    wait_ms(500);
-
-    rgb_matrix_set_color_all(0x80, 0x00, 0x80);
-    rgb_matrix_update_pwm_buffers();
-    set_left_rgb(0x80, 0x00, 0x80);
-    set_right_rgb(0x80, 0x00, 0x80);
-    side_rgb_refresh();
-    wait_ms(500);
-
-    rgb_matrix_set_color_all(0x00, 0x80, 0x80);
-    rgb_matrix_update_pwm_buffers();
-    set_left_rgb(0x00, 0x80, 0x80);
-    set_right_rgb(0x00, 0x80, 0x80);
-    side_rgb_refresh();
-    wait_ms(500);
+        rgb_matrix_set_color_all(r, g, b);
+        rgb_matrix_update_pwm_buffers();
+        set_left_rgb(r, g, b);
+        set_right_rgb(r, g, b);
+        side_rgb_refresh();
+        wait_ms(500);
+    }
 }
 
 /**
