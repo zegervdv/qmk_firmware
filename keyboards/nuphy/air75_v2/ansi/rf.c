@@ -491,7 +491,7 @@ void dev_sts_sync(void) {
 
     /** This is called in house keeping with 1ms delay and
      *  1ms wait time originally. Set to 0 to not hold up housekeeping.
-    */
+     */
     uart_send_cmd(CMD_RF_STS_SYSC, 0, 0);
     uart_receive_pro();
 
@@ -589,6 +589,14 @@ void uart_receive_pro(void) {
     }
 }
 
+/** ================================================================
+ * @brief   UART_GPIO 翻转速率配置低速+上拉
+ ================================================================*/
+void rf_uart_pullup(void) {
+    GPIOB->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR6 | GPIO_OSPEEDER_OSPEEDR7);
+    GPIOB->PUPDR |= (GPIO_PUPDR_PUPDR6_0 | GPIO_PUPDR_PUPDR7_0);
+}
+
 /**
  * @brief  RF uart initial.
  */
@@ -602,8 +610,7 @@ void rf_uart_init(void) {
     USART1->CR1 |= USART_CR1_UE;
 
     /* set Rx and Tx pin pull up */
-    GPIOB->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR6 | GPIO_OSPEEDER_OSPEEDR7);
-    GPIOB->PUPDR |= (GPIO_PUPDR_PUPDR6_0 | GPIO_PUPDR_PUPDR7_0);
+    rf_uart_pullup();
 }
 
 /**

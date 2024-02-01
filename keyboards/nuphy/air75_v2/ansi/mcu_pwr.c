@@ -17,14 +17,6 @@ static bool rgb_led_on  = 0;
 static bool side_led_on = 0;
 
 /** ================================================================
- * @brief   UART_GPIO 翻转速率配置低速+上拉
- ================================================================*/
-void m_uart_gpio_set_low_speed_and_pullup(void) {
-    ((GPIO_TypeDef *)GPIOB)->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR6 | GPIO_OSPEEDER_OSPEEDR7);
-    ((GPIO_TypeDef *)GPIOB)->PUPDR |= (GPIO_PUPDR_PUPDR6_0 | GPIO_PUPDR_PUPDR7_0);
-}
-
-/** ================================================================
  * @brief   关闭USB
  *
  ================================================================*/
@@ -138,6 +130,7 @@ void enter_deep_sleep(void) {
     setPinInputLow(KROW_4);
     setPinInputLow(KROW_5);
 
+    // Configure interrupt source - all 5 rows of the keyboard.
     SYSCFG_EXTILineConfig(EXTI_PORT_R0, EXTI_PIN_R0);
     SYSCFG_EXTILineConfig(EXTI_PORT_R1, EXTI_PIN_R1);
     SYSCFG_EXTILineConfig(EXTI_PORT_R2, EXTI_PIN_R2);
@@ -171,13 +164,14 @@ void enter_deep_sleep(void) {
     setPinOutput(SYS_MODE_PIN);
     writePinLow(SYS_MODE_PIN);
 
+    // These should be LED pins as well, turning them off.
     setPinOutput(A7);
     writePinLow(A7);
     setPinOutput(DRIVER_SIDE_PIN);
     writePinLow(DRIVER_SIDE_PIN);
 
-    setPinOutput(B5);
-    writePinHigh(B5);
+    setPinOutput(NRF_TEST_PIN);
+    writePinHigh(NRF_TEST_PIN);
 
     setPinOutput(NRF_WAKEUP_PIN);
     writePinHigh(NRF_WAKEUP_PIN);
@@ -196,7 +190,9 @@ void exit_deep_sleep(void) {
     extern void matrix_init_pins(void);
     matrix_init_pins();
 
-    m_uart_gpio_set_low_speed_and_pullup();
+    // rf.c
+    void rf_uart_pullup(void);
+    rf_uart_pullup();
 
     // 恢复IO工作状态
     setPinInputHigh(DEV_MODE_PIN); // PC0
@@ -406,18 +402,7 @@ void EXTI_StructInit(EXTI_InitTypeDef *EXTI_InitStruct) {
     EXTI_InitStruct->EXTI_LineCmd = DISABLE;
 }
 
-void uart_init(uint32_t baud); // qmk uart.c
-void m_uart1_init(void) {
-    uart_init(460800); // RF通讯串口初始化
-    USART_Cmd(USART1, DISABLE);
-    // 使能9bit 使能偶校验
-    USART1->CR1 |= USART_CR1_M0 | USART_CR1_PCE;
-    USART_Cmd(USART1, ENABLE);
-
-    m_uart_gpio_set_low_speed_and_pullup();
-}
-
-void m_timer6_init(void) {
+void mcu_timer6_init(void) {
     NVIC_InitTypeDef        NVIC_InitStructure;
     TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
 
