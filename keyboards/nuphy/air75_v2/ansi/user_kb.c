@@ -50,6 +50,7 @@ uint16_t       rf_sw_press_delay     = 0;
 uint16_t       rgb_test_press_delay  = 0;
 uint16_t       rgb_led_last_act      = 0;
 uint16_t       side_led_last_act     = 0;
+uint16_t       sleep_time_delay      = SLEEP_TIME_DELAY;
 host_driver_t *m_host_driver         = 0;
 RGB            bat_pct_rgb           = {.r = 0x80, .g = 0x80, .b = 0x00};
 
@@ -390,7 +391,7 @@ void timer_pro(void) {
  * @brief  load eeprom data.
  */
 void load_eeprom_data(void) {
-    eeconfig_read_user_datablock(&user_config);
+    eeconfig_read_kb_datablock(&user_config);
     if (user_config.default_brightness_flag != 0xA5) {
         user_config_reset();
     } else {
@@ -423,7 +424,7 @@ void user_config_reset(void) {
     user_config.ee_side_colour          = side_colour;
     user_config.sleep_enable            = true;
     user_config.rf_link_timeout         = LINK_TIMEOUT_ALT;
-    eeconfig_update_user_datablock(&user_config);
+    eeconfig_update_kb_datablock(&user_config);
 }
 
 /**
@@ -482,4 +483,35 @@ void user_set_rgb_color(int index, uint8_t red, uint8_t green, uint8_t blue) {
         pwr_rgb_led_on(); // turn on LEDs
     }
     rgb_matrix_set_color(index, red, green, blue);
+}
+
+
+/**
+ * @brief Handle LED power
+ * @note Turn off LEDs if not used to save some power. This is ported
+ *       from older Nuphy leaks.
+ */
+void led_power_handle(void) {
+    static uint32_t interval = 0;
+
+    if (timer_elapsed32(interval) < 500) // only check once in a while, less flickering for unhandled cases
+        return;
+
+    interval = timer_read32();
+
+    if (rgb_led_last_act > 100) { // 10ms intervals
+        if (rgb_matrix_is_enabled() && rgb_matrix_get_hsv().v != 0) {
+            pwr_rgb_led_on();
+        } else { // brightness is 0 or RGB off.
+            pwr_rgb_led_off();
+        }
+    }
+
+    if (side_led_last_act > 100) { // 10ms intervals
+        if (side_light == 0) {
+            pwr_side_led_off();
+        } else {
+            pwr_side_led_on();
+        }
+    }
 }

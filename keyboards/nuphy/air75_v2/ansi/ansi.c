@@ -31,6 +31,7 @@ extern uint16_t        no_act_time;
 extern uint8_t         rf_sw_temp;
 extern uint16_t        rf_sw_press_delay;
 extern uint16_t        rf_linking_time;
+extern uint16_t        sleep_time_delay;
 extern user_config_t   user_config;
 extern DEV_INFO_STRUCT dev_info;
 extern uint8_t         rf_blink_cnt;
@@ -203,12 +204,9 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
 
         case SLEEP_MODE:
             if (record->event.pressed) {
-                if (user_config.sleep_enable)
-                    user_config.sleep_enable = false;
-                else
-                    user_config.sleep_enable = true;
-                f_sleep_show = 1;
-                eeconfig_update_user_datablock(&user_config);
+                user_config.sleep_enable = !user_config.sleep_enable;
+                f_sleep_show             = 1;
+                eeconfig_update_kb_datablock(&user_config);
             }
             return false;
 
@@ -219,19 +217,11 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
             return false;
 
         case BAT_NUM:
-            if (record->event.pressed) {
-                f_bat_num_show = 1;
-            } else {
-                f_bat_num_show = 0;
-            }
+            f_bat_num_show = record->event.pressed;
             return false;
 
         case RGB_TEST:
-            if (record->event.pressed) {
-                f_rgb_test_press = 1;
-            } else {
-                f_rgb_test_press = 0;
-            }
+            f_rgb_test_press = record->event.pressed;
             return false;
 
         case LINK_TO:
@@ -241,7 +231,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
                 } else {
                     user_config.rf_link_timeout = LINK_TIMEOUT;
                 }
-                eeconfig_update_user_datablock(&user_config);
+                eeconfig_update_kb_datablock(&user_config);
             }
             return false;
 
@@ -255,6 +245,16 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
             if (record->event.pressed) {
                 debug_enable   = !debug_enable;
                 debug_keyboard = debug_enable;
+            }
+            return false;
+
+        case KB_SLP:
+            if (record->event.pressed) {
+                if (sleep_time_delay == SLEEP_TIME_DELAY) {
+                    sleep_time_delay = 100 * 30; // 30s
+                } else {
+                    sleep_time_delay = SLEEP_TIME_DELAY;
+                }
             }
             return false;
 
@@ -281,6 +281,9 @@ bool rgb_matrix_indicators_kb(void) {
     if (rf_blink_cnt && dev_info.link_mode >= LINK_BT_1 && dev_info.link_mode <= LINK_BT_3) {
         user_set_rgb_color(30 - dev_info.link_mode, 0, 0, 0x80);
     }
+
+    // power down unused LEDs
+    led_power_handle();
 
     return true;
 }

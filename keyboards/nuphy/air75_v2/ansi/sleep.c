@@ -31,11 +31,11 @@ extern bool            f_wakeup_prepare;
 extern uint8_t         side_light;
 extern uint16_t        rgb_led_last_act;
 extern uint16_t        side_led_last_act;
+extern uint16_t        sleep_time_delay;
 
 extern uint8_t bitkb_report_buf[16];
 extern uint8_t bytekb_report_buf[8];
 
-bool is_side_rgb_off(void);
 void set_left_rgb(uint8_t r, uint8_t g, uint8_t b);
 void set_right_rgb(uint8_t r, uint8_t g, uint8_t b);
 void side_rgb_refresh(void);
@@ -55,47 +55,13 @@ void deep_sleep_handle(void) {
 
     // Sync again before sleeping
     dev_sts_sync();
-    
+
     enter_deep_sleep(); // puts the board in WFI mode and pauses the MCU
     exit_deep_sleep();  // This gets called when there is an interrupt (wake) event.
 
     /* If RF is not connected anymore you would lose the first keystroke.
        This is expected behavior as the connection is not there.
     */
-}
-
-/*
- * @brief Handle LED power
- * @note Turn off LEDs if not used to save some power. This is ported
- *       from older Nuphy leaks.
- */
-void led_power_handle(void) {
-    static uint32_t interval = 0;
-
-    if (timer_elapsed32(interval) < 500) // only check once in a while, less flickering for unhandled cases
-        return;
-
-    interval = timer_read32();
-
-    if (rgb_led_last_act > 100) { // 10ms intervals
-        if (rgb_matrix_is_enabled()) {
-            if (rgb_matrix_get_hsv().v == 0) { // brightness is 0
-                pwr_rgb_led_off();
-            } else {
-                pwr_rgb_led_on();
-            }
-        } else {
-            pwr_rgb_led_off();
-        }
-    }
-
-    if (side_led_last_act > 100) { // 10ms intervals
-        if (side_light == 0) {
-            pwr_side_led_off();
-        } else {
-            pwr_side_led_on();
-        }
-    }
 }
 
 /**
@@ -109,9 +75,6 @@ void sleep_handle(void) {
     /* 50ms interval */
     if (timer_elapsed32(delay_step_timer) < 50) return;
     delay_step_timer = timer_read32();
-
-    // power down unused LEDs
-    led_power_handle();
 
     // sleep process;
     if (f_goto_sleep) {
@@ -170,7 +133,7 @@ void sleep_handle(void) {
         } else {
             usb_suspend_debounce = 0;
         }
-    } else if (no_act_time >= SLEEP_TIME_DELAY) {
+    } else if (no_act_time >= sleep_time_delay) {
         f_goto_sleep = 1;
     } else if (rf_linking_time >= user_config.rf_link_timeout) {
         f_goto_sleep = 1;
