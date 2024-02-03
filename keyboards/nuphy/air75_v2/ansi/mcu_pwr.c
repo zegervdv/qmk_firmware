@@ -190,10 +190,6 @@ void exit_deep_sleep(void) {
     extern void matrix_init_pins(void);
     matrix_init_pins();
 
-    // rf.c
-    void rf_uart_pullup(void);
-    rf_uart_pullup();
-
     // 恢复IO工作状态
     setPinInputHigh(DEV_MODE_PIN); // PC0
     setPinInputHigh(SYS_MODE_PIN); // PC1

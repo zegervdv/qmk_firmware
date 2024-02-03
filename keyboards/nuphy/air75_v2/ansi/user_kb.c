@@ -18,7 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "user_kb.h"
 #include "ansi.h"
 #include "usb_main.h"
-#include "rf_driver.h"
 #include "mcu_pwr.h"
 #include "color.h"
 
@@ -57,6 +56,7 @@ RGB            bat_pct_rgb           = {.r = 0x80, .g = 0x80, .b = 0x00};
 extern bool               f_rf_new_adv_ok;
 extern report_keyboard_t *keyboard_report;
 extern report_nkro_t     *nkro_report;
+extern host_driver_t      rf_host_driver;
 extern uint8_t            side_mode;
 extern uint8_t            side_light;
 extern uint8_t            side_speed;
@@ -371,10 +371,8 @@ void timer_pro(void) {
     }
 
     // step 10ms
-    if (timer_elapsed32(interval_timer) < 10)
-        return;
-    else
-        interval_timer = timer_read32();
+    if (timer_elapsed32(interval_timer) < 10) return;
+    interval_timer = timer_read32();
 
     if (rf_link_show_time < RF_LINK_SHOW_TIME) rf_link_show_time++;
 
@@ -484,7 +482,6 @@ void user_set_rgb_color(int index, uint8_t red, uint8_t green, uint8_t blue) {
     }
     rgb_matrix_set_color(index, red, green, blue);
 }
-
 
 /**
  * @brief Handle LED power

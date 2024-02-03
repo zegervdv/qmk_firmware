@@ -18,7 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "user_kb.h"
 #include "uart.h" // qmk uart.h
 #include "ansi.h"
-#include "rf_driver.h"
 
 USART_MGR_STRUCT Usart_Mgr;
 #define RX_SBYTE Usart_Mgr.RXDBuf[0]
@@ -50,6 +49,7 @@ uint32_t uart_rpt_timer          = 0;
 
 extern DEV_INFO_STRUCT dev_info;
 extern host_driver_t  *m_host_driver;
+extern host_driver_t   rf_host_driver;
 extern uint8_t         host_mode;
 extern uint8_t         rf_blink_cnt;
 extern uint16_t        rf_link_show_time;
@@ -575,7 +575,7 @@ void uart_receive_pro(void) {
         }
 
         if (!uart_available()) {
-            wait_us(250);
+            wait_us(200);
         }
     }
 
