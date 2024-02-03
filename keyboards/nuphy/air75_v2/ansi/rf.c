@@ -438,10 +438,8 @@ void dev_sts_sync(void) {
     static uint32_t interval_timer  = 0;
     static uint8_t  link_state_temp = RF_DISCONNECT;
 
-    if (timer_elapsed32(interval_timer) < 200)
-        return;
-    else
-        interval_timer = timer_read32();
+    if (timer_elapsed32(interval_timer) < 250) return;
+    interval_timer = timer_read32();
 
     if (f_rf_reset) {
         f_rf_reset = 0;
@@ -516,6 +514,8 @@ void UART_Send_Bytes(uint8_t *Buffer, uint32_t Length) {
 
     wait_us(50 + Length * 30);
     writePinHigh(NRF_WAKEUP_PIN);
+
+    wait_us(200);
 }
 
 /**
@@ -555,8 +555,6 @@ void uart_send_report(uint8_t report_type, uint8_t *report_buf, uint8_t report_s
     Usart_Mgr.TXDBuf[4 + report_size] = get_checksum(&Usart_Mgr.TXDBuf[4], report_size);
 
     UART_Send_Bytes(&Usart_Mgr.TXDBuf[0], report_size + 5);
-
-    wait_us(200);
 }
 
 /**
@@ -567,16 +565,17 @@ void uart_receive_pro(void) {
 
     // Receiving serial data from RF module
     while (uart_available()) {
-        rcv_start = true;
-
-        if (Usart_Mgr.RXDLen >= UART_MAX_LEN) {
-            uart_read();
-        } else {
-            Usart_Mgr.RXDBuf[Usart_Mgr.RXDLen++] = uart_read();
+        uint8_t byte = uart_read();
+        if (byte == UART_HEAD) { // valid UART transaction always begins with 0x5A
+            rcv_start = true;
+        }
+        // only read in what's valid. and drop the rest.
+        if (rcv_start && Usart_Mgr.RXDLen < UART_MAX_LEN) {
+            Usart_Mgr.RXDBuf[Usart_Mgr.RXDLen++] = byte;
         }
 
         if (!uart_available()) {
-            wait_us(200);
+            wait_us(250);
         }
     }
 
