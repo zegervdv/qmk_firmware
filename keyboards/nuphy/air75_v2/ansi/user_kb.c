@@ -497,7 +497,7 @@ void led_power_handle(void) {
     interval = timer_read32();
 
     if (rgb_led_last_act > 100) { // 10ms intervals
-        if (rgb_matrix_is_enabled() && rgb_matrix_get_hsv().v != 0) {
+        if (rgb_matrix_is_enabled() && rgb_matrix_get_val() != 0) {
             pwr_rgb_led_on();
         } else { // brightness is 0 or RGB off.
             pwr_rgb_led_off();

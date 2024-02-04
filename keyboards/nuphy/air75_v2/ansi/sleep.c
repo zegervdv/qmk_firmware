@@ -59,6 +59,10 @@ void deep_sleep_handle(void) {
     enter_deep_sleep(); // puts the board in WFI mode and pauses the MCU
     exit_deep_sleep();  // This gets called when there is an interrupt (wake) event.
 
+    // Change any LED's state so the LED driver flushes after turning on for solid colours.
+    // Without doing this, the WS2812 driver wouldn't flush as the previous state is the same as current.
+    rgb_matrix_set_color(0, 0, 0, 0);
+
     /* If RF is not connected anymore you would lose the first keystroke.
        This is expected behavior as the connection is not there.
     */
