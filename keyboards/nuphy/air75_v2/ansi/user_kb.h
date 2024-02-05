@@ -74,6 +74,7 @@ typedef enum {
 #define CMD_SET_24G_NAME        0XCA
 #define CMD_GO_TEST             0XCF
 #define CMD_RF_DFU              0XB1
+#define CMD_NULL                0X00 // I made this up, don't know if it exists. For tracking RX State
 
 #define CMD_WRITE_DATA          0X80
 #define CMD_READ_DATA           0X81
@@ -113,6 +114,7 @@ typedef struct
     uint8_t RXDOverTime;
     uint8_t TXDLenBack;
     uint8_t TXDOffset;
+    uint8_t RXCmd;
     uint8_t TXDBuf[UART_MAX_LEN];
     uint8_t RXDBuf[UART_MAX_LEN];
 } USART_MGR_STRUCT;

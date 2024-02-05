@@ -224,6 +224,8 @@ void RF_Protocol_Receive(void) {
             }
         }
 
+        Usart_Mgr.RXCmd = RX_CMD;
+
         switch (RX_CMD) {
             case CMD_HAND: {
                 f_rf_hand_ok = 1;
@@ -421,7 +423,7 @@ uint8_t uart_send_cmd(uint8_t cmd, uint8_t wait_ack, uint8_t delayms) {
     if (wait_ack) {
         while (wait_ack--) {
             uart_receive_pro();
-            if (f_uart_ack) return TX_OK;
+            if (f_uart_ack || Usart_Mgr.RXCmd == cmd) return TX_OK;
             wait_ms(1);
         }
     } else {
@@ -490,8 +492,7 @@ void dev_sts_sync(void) {
     /** This is called in house keeping with 1ms delay and
      *  1ms wait time originally. Set to 0 to not hold up housekeeping.
      */
-    uart_send_cmd(CMD_RF_STS_SYSC, 0, 1);
-    uart_receive_pro();
+    uart_send_cmd(CMD_RF_STS_SYSC, 1, 1);
 
     if (dev_info.link_mode != LINK_USB) {
         if (++sync_lost >= 5) {
@@ -507,6 +508,8 @@ void dev_sts_sync(void) {
  * @param Length data lenght
  */
 void UART_Send_Bytes(uint8_t *Buffer, uint32_t Length) {
+    Usart_Mgr.RXCmd = CMD_NULL; // reset before command sends.
+
     writePinLow(NRF_WAKEUP_PIN);
     wait_us(50);
 
