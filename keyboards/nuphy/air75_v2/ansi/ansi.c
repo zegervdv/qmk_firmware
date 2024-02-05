@@ -240,13 +240,6 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
             }
             return true;
 
-        case KB_DBG:
-            if (record->event.pressed) {
-                debug_enable   = !debug_enable;
-                debug_keyboard = debug_enable;
-            }
-            return false;
-
         case KB_SLP:
             if (record->event.pressed) {
                 if (sleep_time_delay == SLEEP_TIME_DELAY) {

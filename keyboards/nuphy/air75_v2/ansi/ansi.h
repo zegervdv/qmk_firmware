@@ -43,7 +43,6 @@ enum custom_keycodes {
     BAT_NUM,
     RGB_TEST,
     LINK_TO,
-    KB_DBG,
     KB_SLP
 };
 
