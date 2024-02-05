@@ -77,7 +77,11 @@ void gpio_init(void) {
     /* config RF module pin */
     setPinOutput(NRF_WAKEUP_PIN);
     writePinHigh(NRF_WAKEUP_PIN);
-    setPinInputHigh(NRF_TEST_PIN);
+    
+    /* match old Nuphy code */
+    setPinOutput(NRF_TEST_PIN);
+    writePinLow(NRF_TEST_PIN);
+
     /* reset RF module */
     setPinOutput(NRF_RESET_PIN);
     writePinLow(NRF_RESET_PIN);

@@ -133,7 +133,7 @@ static void uart_auto_nkey_send(uint8_t *pre_bit_report, uint8_t *now_bit_report
  */
 void uart_send_report_repeat(void) {
     if (dev_info.link_mode == LINK_USB) return;
-    uint8_t interval = no_act_time < 2 ? 2 : 25; // repeat every 2ms for first 20ms
+    uint8_t interval = no_act_time < 2 ? 5 : 25; // repeat every 5ms for first 20ms
     if (timer_elapsed32(uart_rpt_timer) >= interval) {
         uart_rpt_timer = timer_read32();
         if (no_act_time <= 50) { // increments every 10ms, 50 = 500ms
@@ -219,7 +219,7 @@ void RF_Protocol_Receive(void) {
                 return;
             }
         } else if (Usart_Mgr.RXDLen == 3) {
-            if (Usart_Mgr.RXDBuf[2] == 0xA0) {
+            if (Usart_Mgr.RXDBuf[2] == 0xA0) { // Only some commands send an ACK.
                 f_uart_ack = 1;
             }
         }
@@ -490,7 +490,7 @@ void dev_sts_sync(void) {
     /** This is called in house keeping with 1ms delay and
      *  1ms wait time originally. Set to 0 to not hold up housekeeping.
      */
-    uart_send_cmd(CMD_RF_STS_SYSC, 0, 0);
+    uart_send_cmd(CMD_RF_STS_SYSC, 0, 1);
     uart_receive_pro();
 
     if (dev_info.link_mode != LINK_USB) {

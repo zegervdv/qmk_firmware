@@ -39,10 +39,9 @@ extern uint32_t        uart_rpt_timer;
 
 /* qmk process record */
 bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
-    no_act_time       = 0;
-    rf_linking_time   = 0;
-    keyboard_protocol = 1;
-    uart_rpt_timer    = timer_read32(); // reset uart repeat timer.
+    no_act_time     = 0;
+    rf_linking_time = 0;
+    uart_rpt_timer  = timer_read32(); // reset uart repeat timer.
 
     if (!process_record_user(keycode, record)) {
         return false;
