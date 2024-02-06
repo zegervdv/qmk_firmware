@@ -28,6 +28,7 @@ extern uint16_t        rf_link_timeout;
 extern uint16_t        no_act_time;
 extern bool            f_goto_sleep;
 extern bool            f_wakeup_prepare;
+extern bool            flush_side_leds;
 extern uint8_t         side_light;
 extern uint16_t        rgb_led_last_act;
 extern uint16_t        side_led_last_act;
@@ -61,7 +62,8 @@ void deep_sleep_handle(void) {
 
     // Change any LED's state so the LED driver flushes after turning on for solid colours.
     // Without doing this, the WS2812 driver wouldn't flush as the previous state is the same as current.
-    rgb_matrix_set_color(0, 0, 0, 0);
+    rgb_matrix_set_color_all(0, 0, 0);
+    flush_side_leds = true;
 
     /* If RF is not connected anymore you would lose the first keystroke.
        This is expected behavior as the connection is not there.

@@ -41,6 +41,7 @@ enum {
     SIDE_OFF,
 };
 
+bool    flush_side_leds     = false;
 uint8_t side_mode           = 0;
 uint8_t side_light          = 1;
 uint8_t side_speed          = 2;
@@ -49,6 +50,7 @@ uint8_t side_colour         = 0;
 uint8_t side_play_point     = 0;
 uint8_t side_play_cnt       = 0;
 uint32_t side_play_timer    = 0;
+
 uint8_t r_temp, g_temp, b_temp;
 rgb_led_t side_leds[SIDE_LED_NUM] = {0};
 
@@ -103,13 +105,16 @@ bool is_side_rgb_off(void) {
 
 /**
  * @brief  side leds set color vaule.
- * @param  index: index of side_leds[].
+ * @param  i: index of side_leds[].
  * @param  ...
  */
-void side_rgb_set_color(int index, uint8_t red, uint8_t green, uint8_t blue) {
-    side_leds[index].r = red;
-    side_leds[index].g = green;
-    side_leds[index].b = blue;
+void side_rgb_set_color(int i, uint8_t r, uint8_t g, uint8_t b) {
+    if (side_leds[i].r != r || side_leds[i].g != g || side_leds[i].b != b) {
+        flush_side_leds = true;
+    }
+    side_leds[i].r = r;
+    side_leds[i].g = g;
+    side_leds[i].b = b;
 }
 
 /**
@@ -120,7 +125,9 @@ void side_rgb_refresh(void) {
         side_led_last_act = 0;
         pwr_side_led_on(); // power on side LED before refresh
     }
+    if (!flush_side_leds) return;
     side_ws2812_setleds(side_leds, SIDE_LED_NUM);
+    flush_side_leds = false;
 }
 
 /**
@@ -434,19 +441,9 @@ static void side_breathe_mode_show(void) {
 
     light_point_playing(0, 1, BREATHE_TAB_LEN, &play_point);
 
-    if (0) {
-        if (play_point == 0) {
-            if (++side_play_point >= SIDE_COLOUR_MAX) side_play_point = 0;
-        }
-
-        r_temp = colour_lib[side_play_point][0];
-        g_temp = colour_lib[side_play_point][1];
-        b_temp = colour_lib[side_play_point][2];
-    } else {
-        r_temp = colour_lib[side_colour][0];
-        g_temp = colour_lib[side_colour][1];
-        b_temp = colour_lib[side_colour][2];
-    }
+    r_temp = colour_lib[side_colour][0];
+    g_temp = colour_lib[side_colour][1];
+    b_temp = colour_lib[side_colour][2];
 
     count_rgb_light(breathe_data_tab[play_point]);
     count_rgb_light(side_light_table[side_light]);
@@ -462,8 +459,6 @@ static void side_breathe_mode_show(void) {
  * @brief  side_static_mode_show.
  */
 static void side_static_mode_show(void) {
-    uint8_t play_index;
-
     if (side_play_cnt <= side_speed_table[side_mode][side_speed])
         return;
     else
@@ -473,16 +468,9 @@ static void side_static_mode_show(void) {
     if (side_play_point >= SIDE_COLOUR_MAX) side_play_point = 0;
 
     for (int i = 0; i < SIDE_LINE; i++) {
-        if (0) {
-            r_temp = flow_rainbow_colour_tab[16 * i][0];
-            g_temp = flow_rainbow_colour_tab[16 * i][1];
-            b_temp = flow_rainbow_colour_tab[16 * i][2];
-            light_point_playing(0, 24, FLOW_COLOUR_TAB_LEN, &play_index);
-        } else {
-            r_temp = colour_lib[side_colour][0];
-            g_temp = colour_lib[side_colour][1];
-            b_temp = colour_lib[side_colour][2];
-        }
+        r_temp = colour_lib[side_colour][0];
+        g_temp = colour_lib[side_colour][1];
+        b_temp = colour_lib[side_colour][2];
 
         count_rgb_light(side_light_table[side_light]);
 

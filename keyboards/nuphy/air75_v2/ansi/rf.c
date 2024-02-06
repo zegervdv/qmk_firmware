@@ -210,7 +210,10 @@ void RF_Protocol_Receive(void) {
     if (Usart_Mgr.RXDState == RX_Done) {
         sync_lost = 0;
 
-        if (Usart_Mgr.RXDLen > 4) {
+        if (RX_LEN + 4 > UART_MAX_LEN) { // is this possible? Playing it safe for undefined behaviour.
+            Usart_Mgr.RXDState = RX_DATA_ERR;
+            return;
+        } else if (Usart_Mgr.RXDLen > 4) {
             for (i = 0; i < RX_LEN; i++)
                 check_sum += Usart_Mgr.RXDBuf[4 + i];
 
@@ -619,10 +622,8 @@ void rf_uart_init(void) {
  * @brief RF module initial.
  */
 void rf_device_init(void) {
-    uint8_t timeout = 0;
-    void    uart_receive_pro(void);
+    uint8_t timeout = 10;
 
-    timeout      = 10;
     f_rf_hand_ok = 0;
     while (timeout--) {
         uart_send_cmd(CMD_HAND, 0, 20);
