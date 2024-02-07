@@ -1,5 +1,19 @@
-// Copyright 2023 NuPhy & jincao1
-// SPDX-License-Identifier: GPL-2.0-or-later
+/* 
+Copyright 2023 NuPhy, Persama (@Persama) & jincao1
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "user_kb.h"
 #include "mcu_stm32f0xx.h"
 #include "mcu_pwr.h"
@@ -22,12 +36,6 @@ static bool side_led_on = 0;
  ================================================================*/
 void m_deinit_usb_072(void) {
     GPIO_InitTypeDef GPIO_InitStructure = {0};
-
-#if (0)
-    // 调用qmk库关闭USB
-    void close_usb(void);
-    close_usb();
-#endif
 
     // 复位USB寄存器
     RCC_APB1PeriphResetCmd(RCC_APB1RSTR_USBRST, ENABLE);
@@ -401,6 +409,7 @@ void EXTI_StructInit(EXTI_InitTypeDef *EXTI_InitStruct) {
     EXTI_InitStruct->EXTI_LineCmd = DISABLE;
 }
 
+#if (0) // this code is unused for now, keeping it here for reference/future usage.
 void mcu_timer6_init(void) {
     NVIC_InitTypeDef        NVIC_InitStructure;
     TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
@@ -454,3 +463,4 @@ void idle_enter_sleep(void) {
         PWR_EnterSleepMode(PWR_SLEEPEntry_WFI);
     }
 }
+#endif
