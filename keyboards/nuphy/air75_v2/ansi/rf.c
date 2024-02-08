@@ -591,14 +591,6 @@ void uart_receive_pro(void) {
     }
 }
 
-/** ================================================================
- * @brief   UART_GPIO 翻转速率配置低速+上拉
- ================================================================*/
-void rf_uart_pullup(void) {
-    GPIOB->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR6 | GPIO_OSPEEDER_OSPEEDR7);
-    GPIOB->PUPDR |= (GPIO_PUPDR_PUPDR6_0 | GPIO_PUPDR_PUPDR7_0);
-}
-
 /**
  * @brief  RF uart initial.
  */
@@ -612,7 +604,8 @@ void rf_uart_init(void) {
     USART1->CR1 |= USART_CR1_UE;
 
     /* set Rx and Tx pin pull up */
-    rf_uart_pullup();
+    GPIOB->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR6 | GPIO_OSPEEDER_OSPEEDR7);
+    GPIOB->PUPDR |= (GPIO_PUPDR_PUPDR6_0 | GPIO_PUPDR_PUPDR7_0);
 }
 
 /**

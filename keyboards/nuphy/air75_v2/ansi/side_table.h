@@ -1,5 +1,5 @@
 /*
-Copyright 2023 @ Nuphy <https://nuphy.com/>
+Copyright 2023 @ Nuphy <https://nuphy.com/> & @jincao1
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define LIGHT_TAB_LEN           101
 #define WAVE_TAB_LEN            112
-#define BREATHE_TAB_LEN         128
+#define BREATHE_TAB_LEN          64
 #define FLOW_COLOUR_TAB_LEN     224
 
 const uint8_t breathe_data_tab[BREATHE_TAB_LEN] =
@@ -32,15 +32,6 @@ const uint8_t breathe_data_tab[BREATHE_TAB_LEN] =
     114,    119,    124,    129,    134,    140,    146,    152,
     158,    164,    170,    176,    182,    188,    194,    200,
     206,    213,    220,    227,    234,    241,    248,    255,
-
-    255,    248,    241,    234,    227,    220,    213,    206,
-    200,    194,    188,    182,    176,    170,    164,    158,
-    152,    146,    140,    134,    129,    124,    119,    114,
-    109,    104,    99,     94,     89,     85,     81,     77,
-    73,     69,     65,     61,     57,     53,     49,     45,
-    42,     39,     36,     33,     30,     27,     24,     22,
-    20,     18,     16,     14,     12,     10,     9,      8,
-    7,      6,      5,      4,      3,      2,      1,      0,
 };
 
 const uint8_t wave_data_tab[WAVE_TAB_LEN] =

@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ws2812.h"
 #include "mcu_pwr.h"
 
+// clang-format off
 #define SIDE_BRIGHT_MAX     4
 #define SIDE_SPEED_MAX      4
 #define SIDE_COLOUR_MAX     8
@@ -30,7 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define RF_LED_LINK_PERIOD  500
 #define RF_LED_PAIR_PERIOD  250
-
+// clang-format on
 
 /* side rgb mode */
 enum {
@@ -41,44 +42,46 @@ enum {
     SIDE_OFF,
 };
 
-bool    flush_side_leds     = false;
-uint8_t side_mode           = 0;
-uint8_t side_light          = 1;
-uint8_t side_speed          = 2;
-uint8_t side_rgb            = 1;
-uint8_t side_colour         = 0;
-uint8_t side_play_point     = 0;
-uint8_t side_play_cnt       = 0;
-uint32_t side_play_timer    = 0;
+bool     flush_side_leds = false;
+uint8_t  side_mode       = 0;
+uint8_t  side_light      = 1;
+uint8_t  side_speed      = 2;
+uint8_t  side_rgb        = 1;
+uint8_t  side_colour     = 0;
+uint8_t  side_play_point = 0;
+uint8_t  side_play_cnt   = 0;
+uint32_t side_play_timer = 0;
 
-uint8_t r_temp, g_temp, b_temp;
+uint8_t   r_temp, g_temp, b_temp;
 rgb_led_t side_leds[SIDE_LED_NUM] = {0};
 
+// clang-format off
 const uint8_t side_speed_table[5][5] = {
-    [SIDE_WAVE]   = {10, 14, 20, 28, 38}, //
-    [SIDE_MIX]    = {10, 14, 20, 28, 38}, //
-    [SIDE_STATIC] = {50, 50, 50, 50, 50}, //
-    [SIDE_BREATH] = {10, 14, 20, 28, 38}, //
-    [SIDE_OFF]    = {50, 50, 50, 50, 50}, //
+    [SIDE_WAVE]   = {10, 14, 20, 28, 38},
+    [SIDE_MIX]    = {10, 14, 20, 28, 38},
+    [SIDE_STATIC] = {50, 50, 50, 50, 50},
+    [SIDE_BREATH] = {10, 14, 20, 28, 38},
+    [SIDE_OFF]    = {50, 50, 50, 50, 50},
 };
 
 const uint8_t side_light_table[6] = {
-    0,   //
-    22,  //
-    34,  //
-    55,  //
-    79,  //
-    106, //
+    0,
+    22,
+    34,
+    55,
+    79,
+    106,
 };
 
 const uint8_t side_led_index_tab[SIDE_LINE][2] = {
-    {5, 6},  //
-    {4, 7},  //
-    {3, 8},  //
-    {2, 9},  //
-    {1, 10}, //
-    {0, 11}, //
+    {5, 6},
+    {4, 7},
+    {3, 8},
+    {2, 9},
+    {1, 10},
+    {0, 11},
 };
+// clang-format on
 
 extern DEV_INFO_STRUCT dev_info;
 extern user_config_t   user_config;
@@ -109,6 +112,7 @@ bool is_side_rgb_off(void) {
  * @param  ...
  */
 void side_rgb_set_color(int i, uint8_t r, uint8_t g, uint8_t b) {
+    r >>= 2, g >>= 2, b >>= 2; // this is necessary apparently for this driver.
     if (side_leds[i].r != r || side_leds[i].g != g || side_leds[i].b != b) {
         flush_side_leds = true;
     }
@@ -237,7 +241,7 @@ void side_mode_control(uint8_t dir) {
  */
 void set_left_rgb(uint8_t r, uint8_t g, uint8_t b) {
     for (int i = 0; i < 6; i++)
-        side_rgb_set_color(i, r >> 2, g >> 2, b >> 2);
+        side_rgb_set_color(i, r, g, b);
 }
 
 /**
@@ -246,7 +250,20 @@ void set_left_rgb(uint8_t r, uint8_t g, uint8_t b) {
  */
 void set_right_rgb(uint8_t r, uint8_t g, uint8_t b) {
     for (int i = 6; i < 12; i++)
-        side_rgb_set_color(i, r >> 2, g >> 2, b >> 2);
+        side_rgb_set_color(i, r, g, b);
+}
+
+/**
+ * @brief Determine to trend up or down the breath tab table.
+ */
+bool breath_tab_trend(bool trend, uint8_t playpoint) {
+    if (playpoint == 0) {
+        return 1;
+    }
+    if (playpoint == BREATHE_TAB_LEN - 1) {
+        return 0;
+    }
+    return trend;
 }
 
 /**
@@ -397,7 +414,7 @@ static void side_wave_mode_show(void) {
         count_rgb_light(side_light_table[side_light]);
 
         for (int j = 0; j < 2; j++) {
-            side_rgb_set_color(side_led_index_tab[i][j], r_temp >> 2, g_temp >> 2, b_temp >> 2);
+            side_rgb_set_color(side_led_index_tab[i][j], r_temp, g_temp, b_temp);
         }
     }
 }
@@ -422,7 +439,7 @@ static void side_spectrum_mode_show(void) {
 
     for (int i = 0; i < SIDE_LINE; i++) {
         for (int j = 0; j < 2; j++) {
-            side_rgb_set_color(side_led_index_tab[i][j], r_temp >> 2, g_temp >> 2, b_temp >> 2);
+            side_rgb_set_color(side_led_index_tab[i][j], r_temp, g_temp, b_temp);
         }
     }
 }
@@ -432,6 +449,7 @@ static void side_spectrum_mode_show(void) {
  */
 static void side_breathe_mode_show(void) {
     static uint8_t play_point = 0;
+    static bool    trend      = 1;
 
     if (side_play_cnt <= side_speed_table[side_mode][side_speed])
         return;
@@ -439,7 +457,8 @@ static void side_breathe_mode_show(void) {
         side_play_cnt -= side_speed_table[side_mode][side_speed];
     if (side_play_cnt > 20) side_play_cnt = 0;
 
-    light_point_playing(0, 1, BREATHE_TAB_LEN, &play_point);
+    light_point_playing(trend, 1, BREATHE_TAB_LEN, &play_point);
+    trend = breath_tab_trend(trend, play_point);
 
     r_temp = colour_lib[side_colour][0];
     g_temp = colour_lib[side_colour][1];
@@ -450,7 +469,7 @@ static void side_breathe_mode_show(void) {
 
     for (int i = 0; i < SIDE_LINE; i++) {
         for (int j = 0; j < 2; j++) {
-            side_rgb_set_color(side_led_index_tab[i][j], r_temp >> 2, g_temp >> 2, b_temp >> 2);
+            side_rgb_set_color(side_led_index_tab[i][j], r_temp, g_temp, b_temp);
         }
     }
 }
@@ -475,7 +494,7 @@ static void side_static_mode_show(void) {
         count_rgb_light(side_light_table[side_light]);
 
         for (int j = 0; j < 2; j++) {
-            side_rgb_set_color(side_led_index_tab[i][j], r_temp >> 2, g_temp >> 2, b_temp >> 2);
+            side_rgb_set_color(side_led_index_tab[i][j], r_temp, g_temp, b_temp);
         }
     }
 }
@@ -496,7 +515,7 @@ static void side_off_mode_show(void) {
 
     for (int i = 0; i < SIDE_LINE; i++) {
         for (int j = 0; j < 2; j++) {
-            side_rgb_set_color(side_led_index_tab[i][j], r_temp >> 2, g_temp >> 2, b_temp >> 2);
+            side_rgb_set_color(side_led_index_tab[i][j], r_temp, g_temp, b_temp);
         }
     }
 }
@@ -571,7 +590,7 @@ void bat_percent_led(void) {
 
     uint8_t i = 0;
     for (; i <= bat_end_led; i++)
-        side_rgb_set_color(11 - i, bat_pct_rgb.r >> 2, bat_pct_rgb.g >> 2, bat_pct_rgb.b >> 2);
+        side_rgb_set_color(11 - i, bat_pct_rgb.r, bat_pct_rgb.g, bat_pct_rgb.b);
 
     for (; i < 6; i++)
         side_rgb_set_color(11 - i, 0, 0, 0);
@@ -584,6 +603,7 @@ void bat_led_show(void) {
     static bool bat_show_flag   = 1;
     static bool bat_show_breath = 0;
     static bool f_init          = 1;
+    static bool trend           = 1;
 
     static uint8_t  play_point     = 0;
     static uint32_t bat_play_timer = 0;
@@ -629,7 +649,8 @@ void bat_led_show(void) {
         if (bat_show_breath) {
             if (timer_elapsed32(bat_play_timer) > 10) {
                 bat_play_timer = timer_read32();
-                light_point_playing(0, 1, BREATHE_TAB_LEN, &play_point);
+                light_point_playing(trend, 1, BREATHE_TAB_LEN, &play_point);
+                trend = breath_tab_trend(trend, play_point);
             }
             r_temp = 0x80;
             g_temp = 0x40;
@@ -691,6 +712,7 @@ void rgb_test_show(void) {
     pwr_rgb_led_on();
     pwr_side_led_on();
 
+    // clang-format off
     uint8_t colours[7][3] = {
         { 0xFF, 0x00, 0x00 },
         { 0x00, 0xFF, 0x00 },
@@ -700,7 +722,7 @@ void rgb_test_show(void) {
         { 0x80, 0x00, 0x80 },
         { 0x00, 0x80, 0x80 }
     };
-
+    // clang-format on
     for (uint8_t i = 0; i < 7; i++) {
         uint8_t r = colours[i][0];
         uint8_t g = colours[i][1];
