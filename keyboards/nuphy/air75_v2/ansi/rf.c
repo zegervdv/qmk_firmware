@@ -210,7 +210,7 @@ void RF_Protocol_Receive(void) {
     if (Usart_Mgr.RXDState == RX_Done) {
         sync_lost = 0;
 
-        if (RX_LEN + 5 > UART_MAX_LEN) { // is this possible? Playing it safe for undefined behaviour.
+        if (RX_LEN >= UART_MAX_LEN - 4) { // is this possible? Playing it safe for undefined behaviour.
             Usart_Mgr.RXDState = RX_DATA_ERR;
             return;
         } else if (Usart_Mgr.RXDLen > 4) {
