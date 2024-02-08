@@ -48,7 +48,7 @@ uint8_t  disconnect_delay        = 0;
 uint32_t uart_rpt_timer          = 0;
 
 extern DEV_INFO_STRUCT dev_info;
-extern host_driver_t  *m_host_driver;
+extern host_driver_t * m_host_driver;
 extern host_driver_t   rf_host_driver;
 extern uint8_t         host_mode;
 extern uint8_t         rf_blink_cnt;
@@ -258,8 +258,10 @@ void RF_Protocol_Receive(void) {
                     }
 
                     dev_info.rf_charge = Usart_Mgr.RXDBuf[7];
-
-                    if (Usart_Mgr.RXDBuf[8] <= 100) dev_info.rf_battery = Usart_Mgr.RXDBuf[8];
+                    uint8_t bat_pct    = Usart_Mgr.RXDBuf[8];
+                    if (bat_pct > 0 && bat_pct <= 100) {
+                        dev_info.rf_battery = bat_pct;
+                    }
                     if (dev_info.rf_charge & 0x01) dev_info.rf_battery = 100;
                     update_bat_pct_rgb();
                 } else {
@@ -443,7 +445,7 @@ void dev_sts_sync(void) {
     static uint32_t interval_timer  = 0;
     static uint8_t  link_state_temp = RF_DISCONNECT;
 
-    if (timer_elapsed32(interval_timer) < 250) return;
+    if (timer_elapsed32(interval_timer) < 200) return;
     interval_timer = timer_read32();
 
     if (f_rf_reset) {
@@ -566,6 +568,11 @@ void uart_send_report(uint8_t report_type, uint8_t *report_buf, uint8_t report_s
 void uart_receive_pro(void) {
     static bool rcv_start = false;
 
+    // If there's data, wait a bit first then process it all.
+    // If you don't do this, you may lose sync.
+    if (!uart_available()) return;
+    wait_us(200);
+
     // Receiving serial data from RF module
     while (uart_available()) {
         uint8_t byte = uart_read();
@@ -575,10 +582,6 @@ void uart_receive_pro(void) {
         // only read in what's valid. and drop the rest.
         if (rcv_start && Usart_Mgr.RXDLen < UART_MAX_LEN) {
             Usart_Mgr.RXDBuf[Usart_Mgr.RXDLen++] = byte;
-        }
-
-        if (!uart_available()) {
-            wait_us(200);
         }
     }
 
@@ -618,8 +621,7 @@ void rf_device_init(void) {
     while (timeout--) {
         uart_send_cmd(CMD_HAND, 0, 20);
         wait_ms(5);
-        uart_receive_pro(); // receive data
-        uart_receive_pro(); // parsing data
+        uart_receive_pro();
         if (f_rf_hand_ok) break;
     }
 
@@ -629,7 +631,6 @@ void rf_device_init(void) {
         uart_send_cmd(CMD_READ_DATA, 0, 20);
         wait_ms(5);
         uart_receive_pro();
-        uart_receive_pro();
         if (f_rf_read_data_ok) break;
     }
 
@@ -638,7 +639,6 @@ void rf_device_init(void) {
     while (timeout--) {
         uart_send_cmd(CMD_RF_STS_SYSC, 0, 20);
         wait_ms(5);
-        uart_receive_pro();
         uart_receive_pro();
         if (f_rf_sts_sysc_ok) break;
     }
