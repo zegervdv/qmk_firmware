@@ -568,8 +568,8 @@ void uart_send_report(uint8_t report_type, uint8_t *report_buf, uint8_t report_s
 void uart_receive_pro(void) {
     static bool rcv_start = false;
 
-    // If there's data, wait a bit first then process it all.
-    // If you don't do this, you may lose sync.
+    // If there's any data, wait a bit first then process it all.
+    // If you don't do this, you may lose sync, and crash the board.
     if (!uart_available()) return;
     wait_us(200);
 
@@ -583,6 +583,8 @@ void uart_receive_pro(void) {
         if (rcv_start && Usart_Mgr.RXDLen < UART_MAX_LEN) {
             Usart_Mgr.RXDBuf[Usart_Mgr.RXDLen++] = byte;
         }
+        
+        // don't do any waits in here, board seems to crash.
     }
 
     // Processing received serial port protocol

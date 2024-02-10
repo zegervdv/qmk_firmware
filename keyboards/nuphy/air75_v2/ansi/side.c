@@ -42,15 +42,13 @@ enum {
     SIDE_OFF,
 };
 
-bool     flush_side_leds = false;
-uint8_t  side_mode       = 0;
-uint8_t  side_light      = 1;
-uint8_t  side_speed      = 2;
-uint8_t  side_rgb        = 1;
-uint8_t  side_colour     = 0;
-uint8_t  side_play_point = 0;
-uint8_t  side_play_cnt   = 0;
-uint32_t side_play_timer = 0;
+bool    flush_side_leds = false;
+uint8_t side_mode       = 0;
+uint8_t side_light      = 1;
+uint8_t side_speed      = 2;
+uint8_t side_rgb        = 1;
+uint8_t side_colour     = 0;
+uint8_t side_play_point = 0;
 
 uint8_t   r_temp, g_temp, b_temp;
 rgb_led_t side_leds[SIDE_LED_NUM] = {0};
@@ -119,6 +117,15 @@ void side_rgb_set_color(int i, uint8_t r, uint8_t g, uint8_t b) {
     side_leds[i].r = r;
     side_leds[i].g = g;
     side_leds[i].b = b;
+}
+
+/**
+ * @brief Set all side LED colour
+ */
+void side_rgb_set_color_all(uint8_t r, uint8_t g, uint8_t b) {
+    for (uint8_t i = 0; i < 12; i++) {
+        side_rgb_set_color(i, r, g, b);
+    }
 }
 
 /**
@@ -382,13 +389,6 @@ static void count_rgb_light(uint8_t light_temp) {
  */
 static void side_wave_mode_show(void) {
     uint8_t play_index;
-
-    if (side_play_cnt <= side_speed_table[side_mode][side_speed])
-        return;
-    else
-        side_play_cnt -= side_speed_table[side_mode][side_speed];
-    if (side_play_cnt > 20) side_play_cnt = 0;
-
     if (side_rgb)
         light_point_playing(0, 3, FLOW_COLOUR_TAB_LEN, &side_play_point);
     else
@@ -423,12 +423,6 @@ static void side_wave_mode_show(void) {
  * @brief  side_spectrum_mode_show.
  */
 static void side_spectrum_mode_show(void) {
-    if (side_play_cnt <= side_speed_table[side_mode][side_speed])
-        return;
-    else
-        side_play_cnt -= side_speed_table[side_mode][side_speed];
-    if (side_play_cnt > 20) side_play_cnt = 0;
-
     light_point_playing(1, 1, FLOW_COLOUR_TAB_LEN, &side_play_point);
 
     r_temp = flow_rainbow_colour_tab[side_play_point][0];
@@ -437,11 +431,7 @@ static void side_spectrum_mode_show(void) {
 
     count_rgb_light(side_light_table[side_light]);
 
-    for (int i = 0; i < SIDE_LINE; i++) {
-        for (int j = 0; j < 2; j++) {
-            side_rgb_set_color(side_led_index_tab[i][j], r_temp, g_temp, b_temp);
-        }
-    }
+    side_rgb_set_color_all(r_temp, g_temp, b_temp);
 }
 
 /**
@@ -450,13 +440,6 @@ static void side_spectrum_mode_show(void) {
 static void side_breathe_mode_show(void) {
     static uint8_t play_point = 0;
     static bool    trend      = 1;
-
-    if (side_play_cnt <= side_speed_table[side_mode][side_speed])
-        return;
-    else
-        side_play_cnt -= side_speed_table[side_mode][side_speed];
-    if (side_play_cnt > 20) side_play_cnt = 0;
-
     light_point_playing(trend, 1, BREATHE_TAB_LEN, &play_point);
     trend = breath_tab_trend(trend, play_point);
 
@@ -467,57 +450,33 @@ static void side_breathe_mode_show(void) {
     count_rgb_light(breathe_data_tab[play_point]);
     count_rgb_light(side_light_table[side_light]);
 
-    for (int i = 0; i < SIDE_LINE; i++) {
-        for (int j = 0; j < 2; j++) {
-            side_rgb_set_color(side_led_index_tab[i][j], r_temp, g_temp, b_temp);
-        }
-    }
+    side_rgb_set_color_all(r_temp, g_temp, b_temp);
 }
 
 /**
  * @brief  side_static_mode_show.
  */
 static void side_static_mode_show(void) {
-    if (side_play_cnt <= side_speed_table[side_mode][side_speed])
-        return;
-    else
-        side_play_cnt -= side_speed_table[side_mode][side_speed];
-    if (side_play_cnt > 20) side_play_cnt = 0;
-
     if (side_play_point >= SIDE_COLOUR_MAX) side_play_point = 0;
 
-    for (int i = 0; i < SIDE_LINE; i++) {
-        r_temp = colour_lib[side_colour][0];
-        g_temp = colour_lib[side_colour][1];
-        b_temp = colour_lib[side_colour][2];
+    r_temp = colour_lib[side_colour][0];
+    g_temp = colour_lib[side_colour][1];
+    b_temp = colour_lib[side_colour][2];
 
-        count_rgb_light(side_light_table[side_light]);
+    count_rgb_light(side_light_table[side_light]);
 
-        for (int j = 0; j < 2; j++) {
-            side_rgb_set_color(side_led_index_tab[i][j], r_temp, g_temp, b_temp);
-        }
-    }
+    side_rgb_set_color_all(r_temp, g_temp, b_temp);
 }
 
 /**
  * @brief  side_off_mode_show.
  */
 static void side_off_mode_show(void) {
-    if (side_play_cnt <= side_speed_table[side_mode][side_speed])
-        return;
-    else
-        side_play_cnt -= side_speed_table[side_mode][side_speed];
-    if (side_play_cnt > 20) side_play_cnt = 0;
-
     r_temp = 0x00;
     g_temp = 0x00;
     b_temp = 0x00;
 
-    for (int i = 0; i < SIDE_LINE; i++) {
-        for (int j = 0; j < 2; j++) {
-            side_rgb_set_color(side_led_index_tab[i][j], r_temp, g_temp, b_temp);
-        }
-    }
+    side_rgb_set_color_all(r_temp, g_temp, b_temp);
 }
 
 /**
@@ -692,10 +651,7 @@ void device_reset_show(void) {
  */
 void device_reset_init(void) {
     side_play_point = 0;
-    side_play_cnt   = 0;
-    side_play_timer = timer_read32();
-
-    f_bat_hold = false;
+    f_bat_hold      = false;
 
     rgb_matrix_enable();
     rgb_matrix_mode(RGB_MATRIX_CYCLE_LEFT_RIGHT);
@@ -742,26 +698,32 @@ void rgb_test_show(void) {
  */
 void side_led_show(void) {
     static uint32_t side_refresh_time = 0;
+    static uint32_t side_update_time  = 0;
+    static bool     do_refresh        = false;
 
-    side_play_cnt += timer_elapsed32(side_play_timer);
-    side_play_timer = timer_read32();
-
-    switch (side_mode) {
-        case SIDE_WAVE:
-            side_wave_mode_show();
-            break;
-        case SIDE_MIX:
-            side_spectrum_mode_show();
-            break;
-        case SIDE_BREATH:
-            side_breathe_mode_show();
-            break;
-        case SIDE_STATIC:
-            side_static_mode_show();
-            break;
-        case SIDE_OFF:
-            side_off_mode_show();
-            break;
+    // side_mode & side_speed should always be valid...
+    // refresh side LED animation based on speed.
+    uint8_t update_interval = side_speed_table[side_mode][side_speed];
+    if (timer_elapsed32(side_update_time) >= update_interval) {
+        side_update_time = timer_read32();
+        do_refresh       = true;
+        switch (side_mode) {
+            case SIDE_WAVE:
+                side_wave_mode_show();
+                break;
+            case SIDE_MIX:
+                side_spectrum_mode_show();
+                break;
+            case SIDE_BREATH:
+                side_breathe_mode_show();
+                break;
+            case SIDE_STATIC:
+                side_static_mode_show();
+                break;
+            case SIDE_OFF:
+                side_off_mode_show();
+                break;
+        }
     }
 
     bat_led_show();
@@ -771,8 +733,10 @@ void side_led_show(void) {
     sys_led_show();
     rf_led_show();
 
-    if (timer_elapsed32(side_refresh_time) > 30) {
+    // This only refreshes if LEDs change anyways. Fixes side LED not refreshing synchronously.
+    if (do_refresh || timer_elapsed32(side_refresh_time) >= 10) {
         side_refresh_time = timer_read32();
+        do_refresh        = false;
         side_rgb_refresh();
     }
 }

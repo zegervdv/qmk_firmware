@@ -37,8 +37,7 @@ extern uint16_t        sleep_time_delay;
 extern uint8_t bitkb_report_buf[16];
 extern uint8_t bytekb_report_buf[8];
 
-void set_left_rgb(uint8_t r, uint8_t g, uint8_t b);
-void set_right_rgb(uint8_t r, uint8_t g, uint8_t b);
+void side_rgb_set_color_all(uint8_t r, uint8_t g, uint8_t b);
 void side_rgb_refresh(void);
 
 void deep_sleep_handle(void) {
@@ -49,12 +48,11 @@ void deep_sleep_handle(void) {
     // Visual cue for deep sleep on side LED.
     pwr_side_led_on();
     wait_ms(50); // give some time to ensure LED powers on.
-    set_left_rgb(0x99, 0x00, 0x00);
-    set_right_rgb(0x99, 0x00, 0x00);
+    side_rgb_set_color_all(0x99, 0x00, 0x00);
     side_rgb_refresh();
     wait_ms(500);
 
-    // Sync again before sleeping
+    // Sync again before sleeping. Without this, the wake keystroke is more likely to be lost.
     dev_sts_sync();
 
     enter_deep_sleep(); // puts the board in WFI mode and pauses the MCU
