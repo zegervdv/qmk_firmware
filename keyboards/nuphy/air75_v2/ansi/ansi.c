@@ -225,11 +225,8 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
 
         case LINK_TO:
             if (record->event.pressed) {
-                if (user_config.rf_link_timeout == LINK_TIMEOUT) {
-                    user_config.rf_link_timeout = LINK_TIMEOUT_ALT;
-                } else {
-                    user_config.rf_link_timeout = LINK_TIMEOUT;
-                }
+                uint16_t mask = LINK_TIMEOUT ^ LINK_TIMEOUT_ALT;
+                user_config.rf_link_timeout ^= mask; // XOR swap
                 eeconfig_update_kb_datablock(&user_config);
             }
             return false;
@@ -242,11 +239,8 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
 
         case KB_SLP:
             if (record->event.pressed) {
-                if (sleep_time_delay == SLEEP_TIME_DELAY) {
-                    sleep_time_delay = 100 * 30; // 30s
-                } else {
-                    sleep_time_delay = SLEEP_TIME_DELAY;
-                }
+                uint16_t mask = (100 * 30) ^ SLEEP_TIME_DELAY; // 30s or default
+                sleep_time_delay ^= mask; // XOR swap
             }
             return false;
 
