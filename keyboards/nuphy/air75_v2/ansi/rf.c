@@ -133,11 +133,16 @@ static void uart_auto_nkey_send(uint8_t *pre_bit_report, uint8_t *now_bit_report
  */
 static uint8_t get_repeat_interval(void) {
     uint8_t interval = f_byte_send > f_bit_send ? f_byte_send : f_bit_send;
-    // nothing to send, or after 10th iteration, send every 25ms
-    if (interval == 0 || interval > 10) {
-        return 25;
+    if (interval == 0) {
+        return 50;
+    } else if (interval <= 3) {
+        return 3;
+    } else if (interval <= 6) {
+        return 5;
+    } else if (interval <= 9) {
+        return 7;
     }
-    return interval + 1; // add 1ms to the current iteration
+    return 25;
 }
 
 /**
