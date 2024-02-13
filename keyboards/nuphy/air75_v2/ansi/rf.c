@@ -34,8 +34,9 @@ bool f_rf_reset        = 0;
 bool f_rf_hand_ok      = 0;
 bool f_goto_sleep      = 0;
 bool f_wakeup_prepare  = 0;
-bool f_bit_send        = 0;
-bool f_byte_send       = 0;
+
+uint8_t f_bit_send  = 0;
+uint8_t f_byte_send = 0;
 
 uint8_t  uart_bit_report_buf[16] = {0};
 uint8_t  func_tab[32]            = {0};
@@ -128,22 +129,36 @@ static void uart_auto_nkey_send(uint8_t *pre_bit_report, uint8_t *now_bit_report
 }
 
 /**
+ * @brief Get variable uart key send repeat interval.
+ */
+static uint8_t get_repeat_interval(void) {
+    uint8_t interval = f_byte_send > f_bit_send ? f_byte_send : f_bit_send;
+    // nothing to send, or after 10th iteration, send every 25ms
+    if (interval == 0 || interval > 10) {
+        return 25;
+    }
+    return interval + 1; // add 1ms to the current iteration
+}
+
+/**
  * @brief  Uart send keys report.
- * @note   Repeats the last sent key reports to reduce stuck keys once every 50ms if no activity.
+ * @note   Repeats the last sent key reports periodically to reduce stuck keys.
  */
 void uart_send_report_repeat(void) {
     if (dev_info.link_mode == LINK_USB) return;
-    uint8_t interval = no_act_time < 2 ? 5 : 25; // repeat every 5ms for first 20ms
+    uint8_t interval = get_repeat_interval();
     if (timer_elapsed32(uart_rpt_timer) >= interval) {
         uart_rpt_timer = timer_read32();
         if (no_act_time <= 50) { // increments every 10ms, 50 = 500ms
             if (f_byte_send) {
                 uart_send_report(CMD_RPT_BYTE_KB, bytekb_report_buf, 8);
+                f_byte_send++;
                 if (f_bit_send) wait_us(200);
             }
 
             if (f_bit_send) {
                 uart_send_report(CMD_RPT_BIT_KB, uart_bit_report_buf, 16);
+                f_bit_send++;
             }
         } else {
             f_byte_send = 0;
@@ -583,7 +598,7 @@ void uart_receive_pro(void) {
         if (rcv_start && Usart_Mgr.RXDLen < UART_MAX_LEN) {
             Usart_Mgr.RXDBuf[Usart_Mgr.RXDLen++] = byte;
         }
-        
+
         // don't do any waits in here, board seems to crash.
     }
 
