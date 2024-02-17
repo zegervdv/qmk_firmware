@@ -49,6 +49,7 @@ typedef enum {
 #define RF_SNIF                 6
 #define RF_INVAILD              0XFE
 #define RF_ERR_STATE            0XFF
+#define RF_WAKE                 0XA5 // made this up
 
 #define CMD_POWER_UP            0XF0
 #define CMD_SLEEP               0XF1

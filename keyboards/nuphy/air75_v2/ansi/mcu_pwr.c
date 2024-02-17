@@ -1,4 +1,4 @@
-/* 
+/*
 Copyright 2023 NuPhy, Persama (@Persama) & jincao1
 
 This program is free software: you can redistribute it and/or modify
@@ -29,6 +29,8 @@ static bool tim6_enabled         = false;
 
 static bool rgb_led_on  = 0;
 static bool side_led_on = 0;
+
+void clear_rf_queue(void);
 
 /** ================================================================
  * @brief   关闭USB
@@ -224,6 +226,10 @@ void exit_deep_sleep(void) {
         restart_usb_driver(&USB_DRIVER);
         f_usb_deinit = 0;
     }
+
+    // flag for RF wakeup workload.
+    dev_info.rf_state = RF_WAKE;
+    clear_rf_queue();
 }
 
 /**
@@ -252,6 +258,10 @@ void exit_light_sleep(void) {
         usb_lld_wakeup_host(&USB_DRIVER);
         restart_usb_driver(&USB_DRIVER);
     }
+
+    // flag for RF wakeup workload.
+    dev_info.rf_state = RF_WAKE;
+    clear_rf_queue();
 }
 
 void led_pwr_sleep_handle(void) {

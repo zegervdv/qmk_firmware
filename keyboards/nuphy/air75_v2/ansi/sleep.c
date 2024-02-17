@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "hal_usb.h"
 #include "usb_main.h"
 #include "mcu_pwr.h"
+#include "rf_queue.h"
 
 extern user_config_t   user_config;
 extern DEV_INFO_STRUCT dev_info;
@@ -34,16 +35,16 @@ extern uint16_t        rgb_led_last_act;
 extern uint16_t        side_led_last_act;
 extern uint16_t        sleep_time_delay;
 
-extern uint8_t bitkb_report_buf[16];
-extern uint8_t bytekb_report_buf[8];
+extern report_buffer_t byte_report_buff;
+extern report_buffer_t bit_report_buff;
 
 void side_rgb_set_color_all(uint8_t r, uint8_t g, uint8_t b);
 void side_rgb_refresh(void);
 
 void deep_sleep_handle(void) {
     break_all_key(); // reset keys before sleeping for new QMK lifecycle to handle on wake.
-    memset(bitkb_report_buf, 0, sizeof(bitkb_report_buf));
-    memset(bytekb_report_buf, 0, sizeof(bytekb_report_buf));
+    memset(&byte_report_buff.cmd, 0, sizeof(report_buffer_t));
+    memset(&bit_report_buff.cmd, 0, sizeof(report_buffer_t));
 
     // Visual cue for deep sleep on side LED.
     pwr_side_led_on();
@@ -62,7 +63,7 @@ void deep_sleep_handle(void) {
     // Without doing this, the WS2812 driver wouldn't flush as the previous state is the same as current.
     rgb_matrix_set_color_all(0, 0, 0);
     flush_side_leds = true;
-
+    no_act_time = 0;
     /* If RF is not connected anymore you would lose the first keystroke.
        This is expected behavior as the connection is not there.
     */
