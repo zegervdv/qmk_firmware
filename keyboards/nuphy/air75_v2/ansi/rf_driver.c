@@ -142,6 +142,9 @@ static void rf_send_keyboard(report_keyboard_t *report) {
 
 static void rf_send_nkro(report_nkro_t *report) {
     static uint8_t bitkb_report_buf[16] = {0};
+    // clera current reports to prevent random double repeat keys?
+    memset(&byte_report_buff.cmd, 0, sizeof(report_buffer_t));
+    memset(&bit_report_buff.cmd, 0, sizeof(report_buffer_t));
     uart_auto_nkey_send(bitkb_report_buf, &nkro_report->mods, 16); // only need 1 byte mod + 15 byte keys
     memcpy(&bitkb_report_buf[0], &nkro_report->mods, 16);
 }

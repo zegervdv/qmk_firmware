@@ -40,11 +40,9 @@ extern report_buffer_t bit_report_buff;
 
 void side_rgb_set_color_all(uint8_t r, uint8_t g, uint8_t b);
 void side_rgb_refresh(void);
-void clear_report_buffer(void);
 
 void deep_sleep_handle(void) {
     break_all_key(); // reset keys before sleeping for new QMK lifecycle to handle on wake.
-    clear_report_buffer();
 
     // Visual cue for deep sleep on side LED.
     pwr_side_led_on();

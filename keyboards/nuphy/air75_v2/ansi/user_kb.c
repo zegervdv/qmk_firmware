@@ -195,6 +195,9 @@ void break_all_key(void) {
     wait_ms(10);
 
     keymap_config.nkro = nkro_temp;
+
+    void clear_report_buffer(void);
+    clear_report_buffer();
 }
 
 /**

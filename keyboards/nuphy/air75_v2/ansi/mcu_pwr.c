@@ -30,7 +30,7 @@ static bool tim6_enabled         = false;
 static bool rgb_led_on  = 0;
 static bool side_led_on = 0;
 
-void clear_rf_queue(void);
+void clear_report_buffer(void);
 
 /** ================================================================
  * @brief   关闭USB
@@ -186,6 +186,8 @@ void enter_deep_sleep(void) {
     setPinOutput(NRF_WAKEUP_PIN);
     writePinHigh(NRF_WAKEUP_PIN);
 
+    clear_report_buffer();
+
     // Enter low power mode and wait for interrupt signal
     PWR_EnterSTOPMode(PWR_Regulator_LowPower, PWR_STOPEntry_WFI);
 }
@@ -229,7 +231,6 @@ void exit_deep_sleep(void) {
 
     // flag for RF wakeup workload.
     dev_info.rf_state = RF_WAKE;
-    clear_rf_queue();
 }
 
 /**
@@ -243,6 +244,7 @@ void enter_light_sleep(void) {
         uart_send_cmd(CMD_SLEEP, 5, 5);
 
     led_pwr_sleep_handle();
+    clear_report_buffer();
 }
 
 /**
@@ -261,7 +263,6 @@ void exit_light_sleep(void) {
 
     // flag for RF wakeup workload.
     dev_info.rf_state = RF_WAKE;
-    clear_rf_queue();
 }
 
 void led_pwr_sleep_handle(void) {
