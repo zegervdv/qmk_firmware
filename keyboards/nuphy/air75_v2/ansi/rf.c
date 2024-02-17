@@ -86,7 +86,7 @@ static uint8_t get_repeat_interval(void) {
 /**
  * @brief Reset report buffers and clear the queue
  */
-static void clear_report_buffer(void) {
+void clear_report_buffer(void) {
     if (byte_report_buff.cmd) memset(&byte_report_buff.cmd, 0, sizeof(report_buffer_t));
     if (bit_report_buff.cmd) memset(&bit_report_buff.cmd, 0, sizeof(report_buffer_t));
     clear_rf_queue();
@@ -136,6 +136,7 @@ void uart_send_report_repeat(void) {
     // queue is not empty, send from queue.
     if (!rf_queue_is_empty()) {
         uart_send_repeat_from_queue();
+        uart_rpt_timer = timer_read32();
         return;
     }
 

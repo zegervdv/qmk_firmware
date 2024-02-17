@@ -40,11 +40,11 @@ extern report_buffer_t bit_report_buff;
 
 void side_rgb_set_color_all(uint8_t r, uint8_t g, uint8_t b);
 void side_rgb_refresh(void);
+void clear_report_buffer(void);
 
 void deep_sleep_handle(void) {
     break_all_key(); // reset keys before sleeping for new QMK lifecycle to handle on wake.
-    memset(&byte_report_buff.cmd, 0, sizeof(report_buffer_t));
-    memset(&bit_report_buff.cmd, 0, sizeof(report_buffer_t));
+    clear_report_buffer();
 
     // Visual cue for deep sleep on side LED.
     pwr_side_led_on();
@@ -63,7 +63,7 @@ void deep_sleep_handle(void) {
     // Without doing this, the WS2812 driver wouldn't flush as the previous state is the same as current.
     rgb_matrix_set_color_all(0, 0, 0);
     flush_side_leds = true;
-    no_act_time = 0;
+    no_act_time = 0; // required to not cause an immediate sleep on first wake
     /* If RF is not connected anymore you would lose the first keystroke.
        This is expected behavior as the connection is not there.
     */
