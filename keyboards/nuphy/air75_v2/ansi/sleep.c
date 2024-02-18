@@ -30,13 +30,7 @@ extern uint16_t        no_act_time;
 extern bool            f_goto_sleep;
 extern bool            f_wakeup_prepare;
 extern bool            flush_side_leds;
-extern uint8_t         side_light;
-extern uint16_t        rgb_led_last_act;
-extern uint16_t        side_led_last_act;
 extern uint16_t        sleep_time_delay;
-
-extern report_buffer_t byte_report_buff;
-extern report_buffer_t bit_report_buff;
 
 void side_rgb_set_color_all(uint8_t r, uint8_t g, uint8_t b);
 void side_rgb_refresh(void);
