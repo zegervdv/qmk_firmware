@@ -109,7 +109,7 @@ static void uart_auto_nkey_send(uint8_t *pre_bit_report, uint8_t *now_bit_report
             .cmd    = CMD_RPT_BYTE_KB,
             .length = 8,
         };
-        memcpy(rpt.buffer, &bytekb_report_buf[0], 8);
+        memcpy(rpt.buffer, &bytekb_report_buf[0], rpt.length);
         send_or_queue(&rpt);
         byte_report_buff = rpt;
     }
@@ -119,7 +119,7 @@ static void uart_auto_nkey_send(uint8_t *pre_bit_report, uint8_t *now_bit_report
             .cmd    = CMD_RPT_BIT_KB,
             .length = 16,
         };
-        memcpy(rpt.buffer, &uart_bit_report_buf[0], 8);
+        memcpy(rpt.buffer, &uart_bit_report_buf[0], rpt.length);
         send_or_queue(&rpt);
         bit_report_buff = rpt;
     }
@@ -135,7 +135,7 @@ static void rf_send_keyboard(report_keyboard_t *report) {
         .cmd    = CMD_RPT_BYTE_KB,
         .length = 8,
     };
-    memcpy(rpt.buffer, &report->mods, 8);
+    memcpy(rpt.buffer, &report->mods, rpt.length);
     send_or_queue(&rpt);
     byte_report_buff = rpt;
 }
