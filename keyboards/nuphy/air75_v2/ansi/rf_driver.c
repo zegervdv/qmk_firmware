@@ -133,7 +133,7 @@ static void rf_send_keyboard(report_keyboard_t *report) {
     report->reserved    = 0;
     report_buffer_t rpt = {
         .cmd    = CMD_RPT_BYTE_KB,
-        .length = 5,
+        .length = 8,
     };
     memcpy(rpt.buffer, &report->mods, 8);
     send_or_queue(&rpt);
