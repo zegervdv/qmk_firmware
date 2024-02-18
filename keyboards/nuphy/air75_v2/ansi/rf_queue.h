@@ -26,7 +26,9 @@ typedef struct {
     uint8_t buffer[16]; // set to max length used
 } report_buffer_t;
 
-bool enqueue_rf_report(report_buffer_t *report);
-bool dequeue_rf_report(report_buffer_t *report);
-bool rf_queue_is_empty(void);
-void clear_rf_queue(void);
+typedef struct {
+    bool (*enqueue)(report_buffer_t *report);
+    bool (*dequeue)(report_buffer_t *report);
+    bool (*is_empty)(void);
+    void (*clear)(void);
+} rf_queue_t;

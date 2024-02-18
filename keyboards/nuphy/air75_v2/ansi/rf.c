@@ -49,6 +49,7 @@ report_buffer_t bit_report_buff  = {0};
 extern DEV_INFO_STRUCT dev_info;
 extern host_driver_t * m_host_driver;
 extern host_driver_t   rf_host_driver;
+extern rf_queue_t      rf_queue;
 extern uint8_t         host_mode;
 extern uint8_t         rf_blink_cnt;
 extern uint16_t        rf_link_show_time;
@@ -89,7 +90,7 @@ static uint8_t get_repeat_interval(void) {
 void clear_report_buffer(void) {
     if (byte_report_buff.cmd) memset(&byte_report_buff.cmd, 0, sizeof(report_buffer_t));
     if (bit_report_buff.cmd) memset(&bit_report_buff.cmd, 0, sizeof(report_buffer_t));
-    clear_rf_queue();
+    rf_queue.clear();
 }
 
 /**
@@ -99,17 +100,17 @@ void uart_send_repeat_from_queue(void) {
     static uint32_t        dequeue_timer = 0;
     static uint32_t        repeat_timer  = 0;
     static report_buffer_t report_buff   = {0};
-    if (timer_elapsed32(dequeue_timer) > 20 && !rf_queue_is_empty()) {
-        dequeue_rf_report(&report_buff);
+    if (timer_elapsed32(dequeue_timer) > 20 && !rf_queue.is_empty()) {
+        rf_queue.dequeue(&report_buff);
         dequeue_timer = timer_read32();
     }
 
     // queue is empty, continue sending from standard process.
-    if (rf_queue_is_empty()) {
+    if (rf_queue.is_empty()) {
         clear_report_buffer();
         if (report_buff.cmd == CMD_RPT_BYTE_KB) {
             byte_report_buff = report_buff;
-        } else {
+        } else if (report_buff.cmd == CMD_RPT_BIT_KB) {
             bit_report_buff = report_buff;
         }
     }
@@ -129,12 +130,12 @@ void uart_send_report_repeat(void) {
 
     if (dev_info.rf_state != RF_CONNECT) {
         // toss away queue after some time if disconnected to prevent sending random keys
-        if (no_act_time > 100) clear_report_buffer();
+        if (no_act_time > 100) clear_report_buffer(); // 1 second
         return;
     }
 
     // queue is not empty, send from queue.
-    if (!rf_queue_is_empty()) {
+    if (!rf_queue.is_empty()) {
         uart_send_repeat_from_queue();
         uart_rpt_timer = timer_read32();
         return;
@@ -465,7 +466,7 @@ void dev_sts_sync(void) {
 /**
  * @brief Uart send bytes.
  * @param Buffer data buf
- * @param Length data lenght
+ * @param Length data length
  */
 void UART_Send_Bytes(uint8_t *Buffer, uint32_t Length) {
     Usart_Mgr.RXCmd = CMD_NULL; // reset before command sends.
@@ -484,7 +485,7 @@ void UART_Send_Bytes(uint8_t *Buffer, uint32_t Length) {
 /**
  * @brief get checksum.
  * @param buf data buf
- * @param len data lenght
+ * @param len data length
  */
 uint8_t get_checksum(uint8_t *buf, uint8_t len) {
     uint8_t i;

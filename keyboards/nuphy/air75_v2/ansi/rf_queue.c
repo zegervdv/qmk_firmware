@@ -17,15 +17,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "rf_queue.h"
 
-#define RPT_BUFFER_SIZE 64
+#define RF_QUEUE_SIZE 64
 
 static uint8_t queue_head = 0;
 static uint8_t queue_tail = 0;
 
-static report_buffer_t buffer_queue[RPT_BUFFER_SIZE] = {0};
+static report_buffer_t buffer_queue[RF_QUEUE_SIZE] = {0};
 
-bool enqueue_rf_report(report_buffer_t *report) {
-    uint8_t next = (queue_head + 1) % RPT_BUFFER_SIZE;
+static bool rf_queue_is_empty(void) {
+    return queue_head == queue_tail;
+}
+
+static void clear_rf_queue(void) {
+    queue_head = 0;
+    queue_tail = 0;
+}
+
+static bool enqueue_rf_report(report_buffer_t *report) {
+    uint8_t next = (queue_head + 1) % RF_QUEUE_SIZE;
     if (next == queue_tail) { // queue is full.
         return false;
     }
@@ -34,20 +43,20 @@ bool enqueue_rf_report(report_buffer_t *report) {
     return true;
 }
 
-bool dequeue_rf_report(report_buffer_t *report) {
+static bool dequeue_rf_report(report_buffer_t *report) {
     if (rf_queue_is_empty()) {
         return false; // queue empty
     }
     *report    = buffer_queue[queue_tail];
-    queue_tail = (queue_tail + 1) % RPT_BUFFER_SIZE; // set tail to next index
+    queue_tail = (queue_tail + 1) % RF_QUEUE_SIZE; // set tail to next index
     return true;
 }
 
-bool rf_queue_is_empty(void) {
-    return queue_head == queue_tail;
-}
-
-void clear_rf_queue(void) {
-    queue_head = 0;
-    queue_tail = 0;
-}
+// clang-format off
+const rf_queue_t rf_queue = {
+    .enqueue = enqueue_rf_report,
+    .dequeue = dequeue_rf_report,
+    .is_empty = rf_queue_is_empty,
+    .clear = clear_rf_queue,
+};
+// clang-format on
