@@ -36,7 +36,6 @@ bool f_rf_sw_press     = 0;
 bool f_dev_reset_press = 0;
 bool f_rgb_test_press  = 0;
 bool f_bat_num_show    = 0;
-bool f_rgb_led_show    = 0; // Something showing on RGB LED matrix.
 
 uint8_t        rf_blink_cnt          = 0;
 uint8_t        rf_sw_temp            = 0;
