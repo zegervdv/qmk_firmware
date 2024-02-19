@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "rf_queue.h"
 
+// Be mindful of queue size!! The MCU only has 16kb memory... This alone will be over 1kb.
 #define RF_QUEUE_SIZE 64
 
 static uint8_t queue_head = 0;
@@ -52,11 +53,9 @@ static bool dequeue_rf_report(report_buffer_t *report) {
     return true;
 }
 
-// clang-format off
 const rf_queue_t rf_queue = {
-    .enqueue = enqueue_rf_report,
-    .dequeue = dequeue_rf_report,
+    .enqueue  = enqueue_rf_report,
+    .dequeue  = dequeue_rf_report,
     .is_empty = rf_queue_is_empty,
-    .clear = clear_rf_queue,
+    .clear    = clear_rf_queue,
 };
-// clang-format on

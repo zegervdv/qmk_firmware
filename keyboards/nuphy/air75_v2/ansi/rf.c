@@ -37,8 +37,6 @@ bool f_goto_sleep      = 0;
 bool f_wakeup_prepare  = 0;
 
 uint8_t  func_tab[32]     = {0};
-uint16_t conkb_report     = 0;
-uint16_t syskb_report     = 0;
 uint8_t  sync_lost        = 0;
 uint8_t  disconnect_delay = 0;
 uint32_t uart_rpt_timer   = 0;

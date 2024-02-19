@@ -146,7 +146,7 @@ void side_rgb_refresh(void) {
  * @param  dir: 0 - decrease, 1 - increase.
  * @note  save to eeprom.
  */
-void side_light_contol(uint8_t dir) {
+void side_light_control(uint8_t dir) {
     if (dir) {
         if (side_light > SIDE_BRIGHT_MAX) {
             return;
@@ -167,7 +167,7 @@ void side_light_contol(uint8_t dir) {
  * @param  dir: 0 - decrease, 1 - increase.
  * @note  save to eeprom.
  */
-void side_speed_contol(uint8_t dir) {
+void side_speed_control(uint8_t dir) {
     if ((side_speed) > SIDE_SPEED_MAX) (side_speed) = SIDE_SPEED_MAX / 2;
 
     if (dir) {
@@ -484,7 +484,7 @@ static void side_off_mode_show(void) {
  */
 void rf_led_show(void) {
     static uint32_t rf_blink_timer = 0;
-    uint16_t        rf_blink_priod = 0;
+    uint16_t        rf_blink_period = 0;
 
     if (rf_blink_cnt || (rf_link_show_time < RF_LINK_SHOW_TIME)) {
         if (dev_info.link_mode == LINK_RF_24) {
@@ -507,17 +507,17 @@ void rf_led_show(void) {
 
     if (rf_blink_cnt) {
         if (dev_info.rf_state == RF_PAIRING)
-            rf_blink_priod = RF_LED_PAIR_PERIOD;
+            rf_blink_period = RF_LED_PAIR_PERIOD;
         else
-            rf_blink_priod = RF_LED_LINK_PERIOD;
+            rf_blink_period = RF_LED_LINK_PERIOD;
 
-        if (timer_elapsed32(rf_blink_timer) > (rf_blink_priod >> 1)) {
+        if (timer_elapsed32(rf_blink_timer) > (rf_blink_period >> 1)) {
             r_temp = 0x00;
             g_temp = 0x00;
             b_temp = 0x00;
         }
 
-        if (timer_elapsed32(rf_blink_timer) >= rf_blink_priod) {
+        if (timer_elapsed32(rf_blink_timer) >= rf_blink_period) {
             rf_blink_cnt--;
             rf_blink_timer = timer_read32();
         }

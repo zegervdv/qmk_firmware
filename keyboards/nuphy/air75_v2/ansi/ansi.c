@@ -157,13 +157,13 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
 
         case SIDE_VAI:
             if (record->event.pressed) {
-                side_light_contol(1);
+                side_light_control(1);
             }
             return false;
 
         case SIDE_VAD:
             if (record->event.pressed) {
-                side_light_contol(0);
+                side_light_control(0);
             }
             return false;
 
@@ -181,13 +181,13 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
 
         case SIDE_SPI:
             if (record->event.pressed) {
-                side_speed_contol(1);
+                side_speed_control(1);
             }
             return false;
 
         case SIDE_SPD:
             if (record->event.pressed) {
-                side_speed_contol(0);
+                side_speed_control(0);
             }
             return false;
 
@@ -262,7 +262,7 @@ bool rgb_matrix_indicators_kb(void) {
         user_set_rgb_color(56, 0x80, 0x00, 0x00);
     }
 
-    // light up corresponding BT mode key during connnection
+    // light up corresponding BT mode key during connection
     if (rf_blink_cnt && dev_info.link_mode >= LINK_BT_1 && dev_info.link_mode <= LINK_BT_3) {
         user_set_rgb_color(30 - dev_info.link_mode, 0, 0, 0x80);
     }

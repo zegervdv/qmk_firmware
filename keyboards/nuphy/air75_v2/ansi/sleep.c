@@ -56,9 +56,6 @@ void deep_sleep_handle(void) {
     rgb_matrix_set_color_all(0, 0, 0);
     flush_side_leds = true;
     no_act_time = 0; // required to not cause an immediate sleep on first wake
-    /* If RF is not connected anymore you would lose the first keystroke.
-       This is expected behavior as the connection is not there.
-    */
 }
 
 /**
