@@ -8,7 +8,7 @@ The following customizations/changes/fixes were applied to this firmware version
 The F row represents the 10s percentage and number row the ones. Example, 35% will light `F1` through `F5` and `1` through `5`.
 - `Fn + \` turns on percent battery display as well as the stock side LED indicator.
 - Battery indicator colour is a gradient flowing from green (full) through yellow, to red (low).
-- `Fn + Z` to toggle the RF disconnect sleep timer between `5s` and `120s` (NuPhy default). Default is set to `5s`. This persist through restarts.
+- `Fn + M + Z` to toggle the RF disconnect sleep timer between `5s` and `120s` (NuPhy default). Default is set to `5s`. This persist through restarts.
 This sets how long the board tries to connect (left light blinking) before giving up.
 - `Fn + M + S` toggles idle sleep timer between `30s` and default `360s`. This is temporary.
 - `Fn + M + D` toggles QMK debugging. Don't turn this on when not connected to QMK toolbox.
