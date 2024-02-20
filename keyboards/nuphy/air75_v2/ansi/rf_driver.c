@@ -53,9 +53,10 @@ static void send_or_queue(report_buffer_t *report) {
 /**
  * @brief Uart auto nkey send
  */
-static void uart_auto_nkey_send(uint8_t *pre_bit_report, uint8_t *now_bit_report, uint8_t size) {
+static void uart_auto_nkey_send(uint8_t *now_bit_report, uint8_t size) {
     static uint8_t bytekb_report_buf[8]    = {0};
     static uint8_t uart_bit_report_buf[16] = {0};
+    static uint8_t pre_bit_report[16]      = {0};
 
     uint8_t i, j, byte_index;
     uint8_t change_mask, offset_mask;
@@ -104,6 +105,7 @@ static void uart_auto_nkey_send(uint8_t *pre_bit_report, uint8_t *now_bit_report
             offset_mask <<= 1;
         }
     }
+    memcpy(pre_bit_report, now_bit_report, 16);
 
     if (f_byte_send) {
         report_buffer_t rpt = {.cmd = CMD_RPT_BYTE_KB, .length = 8};
@@ -133,12 +135,10 @@ static void rf_send_keyboard(report_keyboard_t *report) {
 }
 
 static void rf_send_nkro(report_nkro_t *report) {
-    static uint8_t bitkb_report_buf[16] = {0};
     // clear current reports to prevent random double repeat keys?
     memset(&byte_report_buff.cmd, 0, sizeof(report_buffer_t));
     memset(&bit_report_buff.cmd, 0, sizeof(report_buffer_t));
-    uart_auto_nkey_send(bitkb_report_buf, &nkro_report->mods, 16); // only need 1 byte mod + 15 byte keys
-    memcpy(&bitkb_report_buf[0], &nkro_report->mods, 16);
+    uart_auto_nkey_send(&nkro_report->mods, 16); // only need 1 byte mod + 15 byte keys
 }
 
 static void rf_send_mouse(report_mouse_t *report) {
