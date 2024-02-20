@@ -385,9 +385,9 @@ uint8_t uart_send_cmd(uint8_t cmd, uint8_t wait_ack, uint8_t delayms) {
 
     if (wait_ack) {
         while (wait_ack--) {
+            wait_ms(1);
             uart_receive_pro();
             if (f_uart_ack || Usart_Mgr.RXCmd == cmd) return TX_OK;
-            wait_ms(1);
         }
     } else {
         return TX_OK;
@@ -524,7 +524,12 @@ void uart_send_report(uint8_t report_type, uint8_t *report_buf, uint8_t report_s
  * @brief Uart receives data and processes it after completion,.
  */
 void uart_receive_pro(void) {
-    static bool rcv_start = false;
+    static bool     rcv_start = false;
+    static uint32_t rcv_timer = 0;
+
+    // Process at most once every millisecond.
+    if (timer_elapsed32(rcv_timer) < 1) return;
+    rcv_timer = timer_read32();
 
     // If there's any data, wait a bit first then process it all.
     // If you don't do this, you may lose sync, and crash the board.
