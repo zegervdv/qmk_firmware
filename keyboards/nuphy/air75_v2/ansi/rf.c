@@ -115,8 +115,8 @@ void uart_send_repeat_from_queue(void) {
     }
 
     if (timer_elapsed32(repeat_timer) > 3) {
-        repeat_timer = timer_read32();
         uart_send_report(report_buff.cmd, report_buff.buffer, report_buff.length);
+        repeat_timer = timer_read32();
     }
 }
 
@@ -142,7 +142,6 @@ void uart_send_report_repeat(void) {
 
     uint8_t interval = get_repeat_interval();
     if (timer_elapsed32(uart_rpt_timer) >= interval) {
-        uart_rpt_timer = timer_read32();
         if (no_act_time <= 50) { // increments every 10ms, 50 = 500ms
             if (byte_report_buff.cmd) {
                 uart_send_report(byte_report_buff.cmd, byte_report_buff.buffer, byte_report_buff.length);
@@ -156,6 +155,7 @@ void uart_send_report_repeat(void) {
         } else { // clear the report buffer
             clear_report_buffer();
         }
+        uart_rpt_timer = timer_read32();
     }
 }
 
