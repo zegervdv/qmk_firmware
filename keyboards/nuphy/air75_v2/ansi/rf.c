@@ -454,6 +454,9 @@ void dev_sts_sync(void) {
 
     uart_send_cmd(CMD_RF_STS_SYSC, 0, 0);
 
+    /* reset report repeat timer, might reduce repeat keys? */
+    uart_rpt_timer = timer_read32();
+
     if (dev_info.link_mode != LINK_USB) {
         if (++sync_lost >= 5) {
             sync_lost  = 0;
