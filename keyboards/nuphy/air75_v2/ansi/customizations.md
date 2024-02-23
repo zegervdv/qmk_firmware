@@ -18,7 +18,7 @@ This is a deep sleep state. It only happens if the board is not charging, otherw
 - Bluetooth connection indicators will be lit blue when establishing connection. This lights the corresponding
 BT mode key. No indicator for RF as the sidelight is a different colour.
 - Default startup LED brightness set to zero and side led set to lowest brightness. This is because I don't use LEDs so I don't need to toggle them off when resetting the board or flashing new firmware.
-
+- 3ms debounce instead of 2ms (potential stability)
 
 ## Fixes
 
@@ -29,7 +29,6 @@ BT mode key. No indicator for RF as the sidelight is a different colour.
   This is achieved through a buffer of 64 key actions (key down and key up are 2 actions). The buffer is cleared if connection is not established within 1s after the last action.
   Key events after the buffer is full will also be dropped.
 - Enhance keyboard reports transmission logic to greatly reduce stuck/lost key strokes. It may still occasionally drop/repeat keys but it's rare.
-- Debounce also increased from 2ms back to QMK default 5ms to reduce chatter (duplicate keys). This is at the expense for a slight increase in latency.
 - Slightly enhanced sidelight refresh intervals for smoother animations.
 - Reduced unused side LED tables to save a chunk of memory. This may be essential to the RF queue as the board only has 16kb memory available - the queue alone uses over 1.2kb.
 

@@ -452,7 +452,7 @@ void dev_sts_sync(void) {
         }
     }
 
-    uart_send_cmd(CMD_RF_STS_SYSC, 0, 0);
+    uart_send_cmd(CMD_RF_STS_SYSC, 1, 0);
 
     /* reset report repeat timer, might reduce repeat keys? */
     uart_rpt_timer = timer_read32();
