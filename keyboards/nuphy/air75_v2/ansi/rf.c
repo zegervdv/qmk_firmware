@@ -136,7 +136,6 @@ void uart_send_report_repeat(void) {
     // queue is not empty, send from queue.
     if (!rf_queue.is_empty()) {
         uart_send_repeat_from_queue();
-        uart_rpt_timer = timer_read32();
         return;
     }
 
@@ -521,6 +520,8 @@ void uart_send_report(uint8_t report_type, uint8_t *report_buf, uint8_t report_s
     Usart_Mgr.TXDBuf[4 + report_size] = get_checksum(&Usart_Mgr.TXDBuf[4], report_size);
 
     UART_Send_Bytes(&Usart_Mgr.TXDBuf[0], report_size + 5);
+
+    uart_rpt_timer = timer_read32(); // reset uart repeat timer.
 }
 
 /**

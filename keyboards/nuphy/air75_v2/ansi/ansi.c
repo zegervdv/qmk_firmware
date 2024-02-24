@@ -34,13 +34,11 @@ extern uint16_t        sleep_time_delay;
 extern user_config_t   user_config;
 extern DEV_INFO_STRUCT dev_info;
 extern uint8_t         rf_blink_cnt;
-extern uint32_t        uart_rpt_timer;
 
 /* qmk process record */
 bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
     no_act_time     = 0;
     rf_linking_time = 0;
-    uart_rpt_timer  = timer_read32(); // reset uart repeat timer.
 
     if (!process_record_user(keycode, record)) {
         return false;
