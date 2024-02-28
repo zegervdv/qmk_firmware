@@ -471,16 +471,17 @@ void dev_sts_sync(void) {
  */
 void UART_Send_Bytes(uint8_t *Buffer, uint32_t Length) {
     Usart_Mgr.RXCmd = CMD_NULL; // reset before command sends.
-
+    // Restrict to one command per ms for stability?
+    if (timer_elapsed32(Usart_Mgr.TXLastCmdTm) < 1) {
+        wait_ms(1);
+    }
     writePinLow(NRF_WAKEUP_PIN);
     wait_us(50);
-
     uart_transmit(Buffer, Length);
-
     wait_us(50 + Length * 30);
     writePinHigh(NRF_WAKEUP_PIN);
-
     wait_us(200);
+    Usart_Mgr.TXLastCmdTm = timer_read32();
 }
 
 /**
@@ -531,8 +532,8 @@ void uart_receive_pro(void) {
     static bool     rcv_start = false;
     static uint32_t rcv_timer = 0;
 
-    // Process at most once every millisecond.
-    if (timer_elapsed32(rcv_timer) < 1) return;
+    // Process at most once every ms between last iteration/transaction sent.
+    if (timer_elapsed32(Usart_Mgr.TXLastCmdTm) < 1 || timer_elapsed32(rcv_timer) < 1) return;
     rcv_timer = timer_read32();
 
     // If there's any data, wait a bit first then process it all.

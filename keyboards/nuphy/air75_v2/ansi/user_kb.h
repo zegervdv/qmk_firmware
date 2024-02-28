@@ -108,16 +108,16 @@ typedef enum {
 #define DEV_RESET_PRESS_DELAY   30
 #define RGB_TEST_PRESS_DELAY    30
 
-typedef struct
-{
-    uint8_t RXDState;
-    uint8_t RXDLen;
-    uint8_t RXDOverTime;
-    uint8_t TXDLenBack;
-    uint8_t TXDOffset;
-    uint8_t RXCmd;
-    uint8_t TXDBuf[UART_MAX_LEN];
-    uint8_t RXDBuf[UART_MAX_LEN];
+typedef struct {
+    uint8_t  RXDState;
+    uint8_t  RXDLen;
+    uint8_t  RXDOverTime;
+    uint8_t  TXDLenBack;
+    uint8_t  TXDOffset;
+    uint8_t  RXCmd;
+    uint32_t TXLastCmdTm;
+    uint8_t  TXDBuf[UART_MAX_LEN];
+    uint8_t  RXDBuf[UART_MAX_LEN];
 } USART_MGR_STRUCT;
 
 typedef struct
