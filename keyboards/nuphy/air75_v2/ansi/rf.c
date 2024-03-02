@@ -534,34 +534,34 @@ void uart_receive_pro(void) {
 
     // Process at most once every ms between last iteration/transaction sent.
     if (timer_elapsed32(Usart_Mgr.TXLastCmdTm) < 1 || timer_elapsed32(rcv_timer) < 1) return;
-    rcv_timer = timer_read32();
 
     // If there's any data, wait a bit first then process it all.
     // If you don't do this, you may lose sync, and crash the board.
-    if (!uart_available()) return;
-    wait_us(200);
+    if (uart_available()) {
+        wait_us(200);
+        // Receiving serial data from RF module
+        while (uart_available()) {
+            uint8_t byte = uart_read();
+            if (byte == UART_HEAD) { // valid UART transaction always begins with 0x5A
+                rcv_start = true;
+            }
+            // only read in what's valid. and drop the rest.
+            if (rcv_start && Usart_Mgr.RXDLen < UART_MAX_LEN) {
+                Usart_Mgr.RXDBuf[Usart_Mgr.RXDLen++] = byte;
+            }
 
-    // Receiving serial data from RF module
-    while (uart_available()) {
-        uint8_t byte = uart_read();
-        if (byte == UART_HEAD) { // valid UART transaction always begins with 0x5A
-            rcv_start = true;
+            // don't do any waits in here, board seems to crash.
         }
-        // only read in what's valid. and drop the rest.
-        if (rcv_start && Usart_Mgr.RXDLen < UART_MAX_LEN) {
-            Usart_Mgr.RXDBuf[Usart_Mgr.RXDLen++] = byte;
+
+        // Processing received serial port protocol
+        if (rcv_start) {
+            rcv_start          = false;
+            Usart_Mgr.RXDState = RX_Done;
+            RF_Protocol_Receive();
+            Usart_Mgr.RXDLen = 0;
         }
-
-        // don't do any waits in here, board seems to crash.
     }
-
-    // Processing received serial port protocol
-    if (rcv_start) {
-        rcv_start          = false;
-        Usart_Mgr.RXDState = RX_Done;
-        RF_Protocol_Receive();
-        Usart_Mgr.RXDLen = 0;
-    }
+    rcv_timer = timer_read32();
 }
 
 /**
