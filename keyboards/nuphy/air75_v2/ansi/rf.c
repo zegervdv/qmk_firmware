@@ -94,30 +94,42 @@ void clear_report_buffer(void) {
 /**
  * @brief Repeating reports from queue.
  */
-void uart_send_repeat_from_queue(void) {
+bool uart_send_repeat_from_queue(void) {
+    static bool            queue_send    = false;
     static uint32_t        dequeue_timer = 0;
     static uint32_t        repeat_timer  = 0;
     static report_buffer_t report_buff   = {0};
-    if (timer_elapsed32(dequeue_timer) > 20 && !rf_queue.is_empty()) {
-        rf_queue.dequeue(&report_buff);
-        repeat_timer  = 0;
-        dequeue_timer = timer_read32();
+
+    if (rf_queue.is_empty() && !queue_send) {
+        return false;
     }
 
-    // queue is empty, continue sending from standard process.
-    if (rf_queue.is_empty()) {
-        clear_report_buffer();
-        if (report_buff.cmd == CMD_RPT_BYTE_KB) {
-            byte_report_buff = report_buff;
-        } else if (report_buff.cmd == CMD_RPT_BIT_KB) {
-            bit_report_buff = report_buff;
+    if (timer_elapsed32(dequeue_timer) > 25) {
+        if (rf_queue.dequeue(&report_buff)) {
+            repeat_timer = 0;
+            queue_send   = true;
+            // queue is empty, continue sending from standard process.
+            if (rf_queue.is_empty()) {
+                clear_report_buffer();
+                if (report_buff.cmd == CMD_RPT_BYTE_KB) {
+                    byte_report_buff = report_buff;
+                } else if (report_buff.cmd == CMD_RPT_BIT_KB) {
+                    bit_report_buff = report_buff;
+                }
+            }
+        } else {
+            queue_send = false;
+            return false;
         }
+        dequeue_timer = timer_read32();
     }
 
     if (timer_elapsed32(repeat_timer) > 3) {
         uart_send_report(report_buff.cmd, report_buff.buffer, report_buff.length);
         repeat_timer = timer_read32();
     }
+
+    return true;
 }
 
 /**
@@ -134,8 +146,7 @@ void uart_send_report_repeat(void) {
     }
 
     // queue is not empty, send from queue.
-    if (!rf_queue.is_empty()) {
-        uart_send_repeat_from_queue();
+    if (uart_send_repeat_from_queue()) {
         return;
     }
 
