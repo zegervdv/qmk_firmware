@@ -41,8 +41,8 @@ uint8_t  sync_lost        = 0;
 uint8_t  disconnect_delay = 0;
 uint32_t uart_rpt_timer   = 0;
 
-report_buffer_t byte_report_buff = {0};
-report_buffer_t bit_report_buff  = {0};
+report_buffer_t report_buff_a = {0};
+report_buffer_t report_buff_b = {0};
 
 extern DEV_INFO_STRUCT dev_info;
 extern host_driver_t * m_host_driver;
@@ -67,8 +67,8 @@ void    break_all_key(void);
  * @brief Get variable uart key send repeat interval.
  */
 static uint8_t get_repeat_interval(void) {
-    uint8_t repeat_byte = byte_report_buff.repeat;
-    uint8_t repeat_bit  = bit_report_buff.repeat;
+    uint8_t repeat_byte = report_buff_a.repeat;
+    uint8_t repeat_bit  = report_buff_b.repeat;
     uint8_t interval    = repeat_byte > repeat_bit ? repeat_byte : repeat_bit;
     if (interval == 0) {
         return 50;
@@ -86,50 +86,34 @@ static uint8_t get_repeat_interval(void) {
  * @brief Reset report buffers and clear the queue
  */
 void clear_report_buffer(void) {
-    if (byte_report_buff.cmd) memset(&byte_report_buff.cmd, 0, sizeof(report_buffer_t));
-    if (bit_report_buff.cmd) memset(&bit_report_buff.cmd, 0, sizeof(report_buffer_t));
+    if (report_buff_a.cmd) memset(&report_buff_a.cmd, 0, sizeof(report_buffer_t));
+    if (report_buff_b.cmd) memset(&report_buff_b.cmd, 0, sizeof(report_buffer_t));
     rf_queue.clear();
 }
 
 /**
  * @brief Repeating reports from queue.
  */
-bool uart_send_repeat_from_queue(void) {
-    static bool            queue_send    = false;
+void uart_send_repeat_from_queue(void) {
     static uint32_t        dequeue_timer = 0;
     static uint32_t        repeat_timer  = 0;
     static report_buffer_t report_buff   = {0};
-
-    if (rf_queue.is_empty() && !queue_send) {
-        return false;
+    if (timer_elapsed32(dequeue_timer) > 25 && !rf_queue.is_empty()) {
+        rf_queue.dequeue(&report_buff);
+        repeat_timer  = 0;
+        dequeue_timer = timer_read32();
     }
 
-    if (timer_elapsed32(dequeue_timer) > 25) {
-        if (rf_queue.dequeue(&report_buff)) {
-            repeat_timer = 0;
-            queue_send   = true;
-            // queue is empty, continue sending from standard process.
-            if (rf_queue.is_empty()) {
-                clear_report_buffer();
-                if (report_buff.cmd == CMD_RPT_BYTE_KB) {
-                    byte_report_buff = report_buff;
-                } else if (report_buff.cmd == CMD_RPT_BIT_KB) {
-                    bit_report_buff = report_buff;
-                }
-            }
-        } else {
-            queue_send = false;
-            return false;
-        }
-        dequeue_timer = timer_read32();
+    // queue is empty, continue sending from standard process.
+    if (rf_queue.is_empty()) {
+        clear_report_buffer();
+        report_buff_a = report_buff;
     }
 
     if (timer_elapsed32(repeat_timer) > 3) {
         uart_send_report(report_buff.cmd, report_buff.buffer, report_buff.length);
         repeat_timer = timer_read32();
     }
-
-    return true;
 }
 
 /**
@@ -146,21 +130,22 @@ void uart_send_report_repeat(void) {
     }
 
     // queue is not empty, send from queue.
-    if (uart_send_repeat_from_queue()) {
+    if (!rf_queue.is_empty()) {
+        uart_send_repeat_from_queue();
         return;
     }
 
     uint8_t interval = get_repeat_interval();
     if (timer_elapsed32(uart_rpt_timer) >= interval) {
         if (no_act_time <= 50) { // increments every 10ms, 50 = 500ms
-            if (byte_report_buff.cmd) {
-                uart_send_report(byte_report_buff.cmd, byte_report_buff.buffer, byte_report_buff.length);
-                byte_report_buff.repeat++;
+            if (report_buff_a.cmd) {
+                uart_send_report(report_buff_a.cmd, report_buff_a.buffer, report_buff_a.length);
+                report_buff_a.repeat++;
             }
 
-            if (bit_report_buff.cmd) {
-                uart_send_report(bit_report_buff.cmd, bit_report_buff.buffer, bit_report_buff.length);
-                bit_report_buff.repeat++;
+            if (report_buff_b.cmd) {
+                uart_send_report(report_buff_b.cmd, report_buff_b.buffer, report_buff_b.length);
+                report_buff_b.repeat++;
             }
         } else { // clear the report buffer
             clear_report_buffer();

@@ -22,8 +22,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /* Variable declaration */
 extern DEV_INFO_STRUCT dev_info;
-extern report_buffer_t byte_report_buff;
-extern report_buffer_t bit_report_buff;
+extern report_buffer_t report_buff_a;
+extern report_buffer_t report_buff_b;
 extern rf_queue_t      rf_queue;
 
 /* Host driver */
@@ -111,14 +111,14 @@ static void uart_auto_nkey_send(uint8_t *now_bit_report, uint8_t size) {
         report_buffer_t rpt = {.cmd = CMD_RPT_BYTE_KB, .length = 8};
         memcpy(rpt.buffer, &bytekb_report_buf[0], rpt.length);
         send_or_queue(&rpt);
-        byte_report_buff = rpt;
+        report_buff_a = rpt;
     }
 
     if (f_bit_send) {
         report_buffer_t rpt = {.cmd = CMD_RPT_BIT_KB, .length = 16};
         memcpy(rpt.buffer, &uart_bit_report_buf[0], rpt.length);
         send_or_queue(&rpt);
-        bit_report_buff = rpt;
+        report_buff_b = rpt;
     }
 }
 
@@ -131,12 +131,12 @@ static void rf_send_keyboard(report_keyboard_t *report) {
     report_buffer_t rpt = {.cmd = CMD_RPT_BYTE_KB, .length = 8};
     memcpy(rpt.buffer, &report->mods, rpt.length);
     send_or_queue(&rpt);
-    byte_report_buff = rpt;
+    report_buff_a = rpt;
 }
 
 static void rf_send_nkro(report_nkro_t *report) {
-    memset(&byte_report_buff.cmd, 0, sizeof(report_buffer_t));
-    memset(&bit_report_buff.cmd, 0, sizeof(report_buffer_t));
+    memset(&report_buff_a.cmd, 0, sizeof(report_buffer_t));
+    memset(&report_buff_b.cmd, 0, sizeof(report_buffer_t));
     uart_auto_nkey_send(&nkro_report->mods, 16); // only need 1 byte mod + 15 byte keys
 }
 
