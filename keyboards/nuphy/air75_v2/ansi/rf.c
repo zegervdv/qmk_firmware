@@ -21,11 +21,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "rf_queue.h"
 
 USART_MGR_STRUCT Usart_Mgr;
+// clang-format off
 #define RX_SBYTE Usart_Mgr.RXDBuf[0]
-#define RX_CMD Usart_Mgr.RXDBuf[1]
-#define RX_ACK Usart_Mgr.RXDBuf[2]
-#define RX_LEN Usart_Mgr.RXDBuf[3]
-#define RX_DAT Usart_Mgr.RXDBuf[4]
+#define RX_CMD   Usart_Mgr.RXDBuf[1]
+#define RX_ACK   Usart_Mgr.RXDBuf[2]
+#define RX_LEN   Usart_Mgr.RXDBuf[3]
+#define RX_DAT   Usart_Mgr.RXDBuf[4]
+// clang-format on
 
 bool f_uart_ack        = 0;
 bool f_rf_read_data_ok = 0;
@@ -58,7 +60,7 @@ extern bool            f_dial_sw_init_ok;
 
 void    uart_init(uint32_t baud); // qmk uart.c
 void    uart_send_report(uint8_t report_type, uint8_t *report_buf, uint8_t report_size);
-void    UART_Send_Bytes(uint8_t *Buffer, uint32_t Length);
+void    uart_send_bytes(uint8_t *Buffer, uint32_t Length);
 uint8_t get_checksum(uint8_t *buf, uint8_t len);
 void    uart_receive_pro(void);
 void    break_all_key(void);
@@ -67,9 +69,7 @@ void    break_all_key(void);
  * @brief Get variable uart key send repeat interval.
  */
 static uint8_t get_repeat_interval(void) {
-    uint8_t repeat_byte = report_buff_a.repeat;
-    uint8_t repeat_bit  = report_buff_b.repeat;
-    uint8_t interval    = repeat_byte > repeat_bit ? repeat_byte : repeat_bit;
+    uint8_t interval = MAX(report_buff_a.repeat, report_buff_b.repeat);
     if (interval == 0) {
         return 50;
     } else if (interval <= 3) {
@@ -157,7 +157,7 @@ void uart_send_report_repeat(void) {
 /**
  * @brief  Parsing the data received from the RF module.
  */
-void RF_Protocol_Receive(void) {
+void rf_protocol_receive(void) {
     uint8_t i, check_sum = 0;
 
     if (Usart_Mgr.RXDState == RX_Done) {
@@ -376,7 +376,7 @@ uint8_t uart_send_cmd(uint8_t cmd, uint8_t wait_ack, uint8_t delayms) {
     }
 
     f_uart_ack = 0;
-    UART_Send_Bytes(Usart_Mgr.TXDBuf, Usart_Mgr.TXDBuf[3] + 5);
+    uart_send_bytes(Usart_Mgr.TXDBuf, Usart_Mgr.TXDBuf[3] + 5);
 
     if (wait_ack) {
         while (wait_ack--) {
@@ -465,7 +465,7 @@ void dev_sts_sync(void) {
  * @param Buffer data buf
  * @param Length data length
  */
-void UART_Send_Bytes(uint8_t *Buffer, uint32_t Length) {
+void uart_send_bytes(uint8_t *Buffer, uint32_t Length) {
     Usart_Mgr.RXCmd = CMD_NULL; // reset before command sends.
     // Restrict to one command per ms for stability?
     if (timer_elapsed32(Usart_Mgr.TXLastCmdTm) < 1) {
@@ -516,7 +516,7 @@ void uart_send_report(uint8_t report_type, uint8_t *report_buf, uint8_t report_s
     memcpy(&Usart_Mgr.TXDBuf[4], report_buf, report_size);
     Usart_Mgr.TXDBuf[4 + report_size] = get_checksum(&Usart_Mgr.TXDBuf[4], report_size);
 
-    UART_Send_Bytes(&Usart_Mgr.TXDBuf[0], report_size + 5);
+    uart_send_bytes(&Usart_Mgr.TXDBuf[0], report_size + 5);
 
     uart_rpt_timer = timer_read32(); // reset uart repeat timer.
 }
@@ -553,7 +553,7 @@ void uart_receive_pro(void) {
         if (rcv_start) {
             rcv_start          = false;
             Usart_Mgr.RXDState = RX_Done;
-            RF_Protocol_Receive();
+            rf_protocol_receive();
             Usart_Mgr.RXDLen = 0;
         }
     }
