@@ -456,7 +456,6 @@ void bat_pct_led_kb(void) {
 
 /**
  * @brief Updates RGB value for current bat percentage.
- *        Color gradient from green to red through yellow.
  */
 void update_bat_pct_rgb(void) {
     uint8_t bat_pct = dev_info.rf_battery;
@@ -466,7 +465,14 @@ void update_bat_pct_rgb(void) {
     }
     // 120 hue is green, 0 is red on a 360 degree wheel but QMK is a uint8_t
     // so it needs to convert to relative to 255 - so green is actually 85.
-    uint8_t h = (85 * bat_pct) / 100;
+    uint8_t h = 85;
+    if (bat_pct <= 20) {
+        h = 0; // red
+    } else if (bat_pct <= 40) {
+        h = 21; // orange
+    } else if (bat_pct <= 80) {
+        h = 43; // yellow
+    }
 
     HSV hsv = {
         .h = h,

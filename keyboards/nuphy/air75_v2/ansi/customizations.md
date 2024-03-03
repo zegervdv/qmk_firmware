@@ -7,7 +7,7 @@ The following customizations/changes/fixes were applied on top of NuPhy's stock 
 - `Fn + B` when held temporarily displays the current battery percentage on the F and number row.
 The F row represents the 10s percentage and number row the ones. Example, 35% will light `F3` and `5`.
 - `Fn + \` turns on percent battery display as well as the stock side LED indicator. Side LED battery gauge steps are enhanced, turning off 1 LED every 20%.
-- Battery indicator colour is a gradient flowing from green (full) through yellow, to red (low).
+- Battery indicator colours: green for 100% to 81%, yellow for 80% to 41%, orange/amber for 40% to 21%, and red for 20% and below.
 - `Fn + M + Z` to toggle the RF disconnect sleep timer between `5s` and `120s` (NuPhy default). Default is set to `5s`. This persist through restarts.
 This sets how long the board tries to connect (left light blinking) before giving up.
 - `Fn + M + S` toggles idle sleep timer between `30s` and default `360s`. This is temporary.
