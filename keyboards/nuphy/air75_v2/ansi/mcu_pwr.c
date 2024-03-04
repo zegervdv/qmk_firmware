@@ -18,6 +18,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "mcu_stm32f0xx.h"
 #include "mcu_pwr.h"
 
+// from @adi4086
+static const pin_t row_pins[MATRIX_ROWS] = MATRIX_ROW_PINS;
+static const pin_t col_pins[MATRIX_COLS] = MATRIX_COL_PINS;
+
 //------------------------------------------------
 // 外部变量
 extern DEV_INFO_STRUCT dev_info;
@@ -97,48 +101,15 @@ void enter_deep_sleep(void) {
     // 关闭定时器
     if (tim6_enabled) TIM_Cmd(TIM6, DISABLE);
 
-    //------------------------ 配置按键唤醒
-    gpio_set_pin_output(KCOL_0);
-    gpio_write_pin_high(KCOL_0);
-    gpio_set_pin_output(KCOL_1);
-    gpio_write_pin_high(KCOL_1);
-    gpio_set_pin_output(KCOL_2);
-    gpio_write_pin_high(KCOL_2);
-    gpio_set_pin_output(KCOL_3);
-    gpio_write_pin_high(KCOL_3);
-    gpio_set_pin_output(KCOL_4);
-    gpio_write_pin_high(KCOL_4);
-    gpio_set_pin_output(KCOL_5);
-    gpio_write_pin_high(KCOL_5);
-    gpio_set_pin_output(KCOL_6);
-    gpio_write_pin_high(KCOL_6);
-    gpio_set_pin_output(KCOL_7);
-    gpio_write_pin_high(KCOL_7);
-    gpio_set_pin_output(KCOL_8);
-    gpio_write_pin_high(KCOL_8);
-    gpio_set_pin_output(KCOL_9);
-    gpio_write_pin_high(KCOL_9);
-    gpio_set_pin_output(KCOL_10);
-    gpio_write_pin_high(KCOL_10);
-    gpio_set_pin_output(KCOL_11);
-    gpio_write_pin_high(KCOL_11);
-    gpio_set_pin_output(KCOL_12);
-    gpio_write_pin_high(KCOL_12);
-    gpio_set_pin_output(KCOL_13);
-    gpio_write_pin_high(KCOL_13);
-    gpio_set_pin_output(KCOL_14);
-    gpio_write_pin_high(KCOL_14);
-    gpio_set_pin_output(KCOL_15);
-    gpio_write_pin_high(KCOL_15);
-    gpio_set_pin_output(KCOL_16);
-    gpio_write_pin_high(KCOL_16);
+    // from @adi4086
+    for (int i = 0; i < ARRAY_SIZE(col_pins); i++) {
+        gpio_set_pin_output(col_pins[i]);
+        gpio_write_pin_high(col_pins[i]);
+    }
 
-    gpio_set_pin_input_low(KROW_0);
-    gpio_set_pin_input_low(KROW_1);
-    gpio_set_pin_input_low(KROW_2);
-    gpio_set_pin_input_low(KROW_3);
-    gpio_set_pin_input_low(KROW_4);
-    gpio_set_pin_input_low(KROW_5);
+    for (int i = 0; i < ARRAY_SIZE(row_pins); i++) {
+        gpio_set_pin_input_low(row_pins[i]);
+    }
 
     // Configure interrupt source - all 5 rows of the keyboard.
     SYSCFG_EXTILineConfig(EXTI_PORT_R0, EXTI_PIN_R0);
