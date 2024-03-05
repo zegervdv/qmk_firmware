@@ -81,16 +81,6 @@ const uint8_t side_led_index_tab[SIDE_LINE][2] = {
 };
 // clang-format on
 
-extern DEV_INFO_STRUCT dev_info;
-extern user_config_t   user_config;
-extern uint8_t         rf_blink_cnt;
-extern uint16_t        rf_link_show_time;
-extern uint16_t        side_led_last_act;
-extern bool            f_bat_hold;
-extern bool            f_sys_show;
-extern bool            f_sleep_show;
-extern RGB             bat_pct_rgb;
-
 void side_ws2812_setleds(rgb_led_t *ledarray, uint16_t leds);
 void rgb_matrix_update_pwm_buffers(void);
 
@@ -321,15 +311,22 @@ void sleep_sw_led_show(void) {
     }
 
     if (sleep_show_flag) {
-        if (user_config.sleep_enable) {
-            r_temp = 0x00;
-            g_temp = 0x80;
-            b_temp = 0x00;
-        } else {
-            r_temp = 0x80;
-            g_temp = 0x00;
-            b_temp = 0x00;
+        r_temp = 0x00;
+        g_temp = 0x00;
+        b_temp = 0x00;
+        switch (user_config.sleep_mode) {
+            case SLEEP_MODE_OFF:
+                r_temp = 0x80;
+                break;
+            case SLEEP_MODE_LIGHT:
+                r_temp = 0x80;
+                g_temp = 0x40;
+                break;
+            case SLEEP_MODE_DEEP:
+                g_temp = 0x80;
+                break;
         }
+
         if ((timer_elapsed32(sleep_show_timer) / 500) % 2 == 0) {
             set_right_rgb(r_temp, g_temp, b_temp);
         } else {
@@ -483,7 +480,7 @@ static void side_off_mode_show(void) {
  * @brief  rf_led_show.
  */
 void rf_led_show(void) {
-    static uint32_t rf_blink_timer = 0;
+    static uint32_t rf_blink_timer  = 0;
     uint16_t        rf_blink_period = 0;
 
     if (rf_blink_cnt || (rf_link_show_time < RF_LINK_SHOW_TIME)) {

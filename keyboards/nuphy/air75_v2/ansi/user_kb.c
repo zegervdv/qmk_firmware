@@ -52,15 +52,7 @@ uint16_t       sleep_time_delay      = SLEEP_TIME_DELAY;
 host_driver_t *m_host_driver         = 0;
 RGB            bat_pct_rgb           = {.r = 0x80, .g = 0x80, .b = 0x00};
 
-extern bool               f_rf_new_adv_ok;
-extern report_keyboard_t *keyboard_report;
-extern report_nkro_t     *nkro_report;
-extern host_driver_t      rf_host_driver;
-extern uint8_t            side_mode;
-extern uint8_t            side_light;
-extern uint8_t            side_speed;
-extern uint8_t            side_rgb;
-extern uint8_t            side_colour;
+extern host_driver_t rf_host_driver;
 
 /**
  * @brief  gpio initial.
@@ -423,7 +415,7 @@ void user_config_reset(void) {
     user_config.ee_side_speed           = side_speed;
     user_config.ee_side_rgb             = side_rgb;
     user_config.ee_side_colour          = side_colour;
-    user_config.sleep_enable            = true;
+    user_config.sleep_mode              = SLEEP_MODE_DEEP;
     user_config.rf_link_timeout         = LINK_TIMEOUT_ALT;
     eeconfig_update_kb_datablock(&user_config);
 }
@@ -522,4 +514,14 @@ void led_power_handle(void) {
             pwr_side_led_on();
         }
     }
+}
+
+void toggle_sleep_mode(void) {
+    if (user_config.sleep_mode > SLEEP_MODE_OFF) {
+        user_config.sleep_mode--;
+    } else {
+        user_config.sleep_mode = SLEEP_MODE_DEEP;
+    }
+    f_sleep_show = 1;
+    eeconfig_update_kb_datablock(&user_config);
 }

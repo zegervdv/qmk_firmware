@@ -14,11 +14,15 @@ This sets how long the board tries to connect (left light blinking) before givin
 - `Fn + M + D` toggles QMK debugging. Don't turn this on when not connected to QMK toolbox.
 The letter `D` will light up red when enabled.
 - Side indicators will flash red for 0.5s when board enters sleep mode, as an indicator.
-This is a deep sleep state. It only happens if the board is not charging, otherwise the board enters a light sleep state with no indicators.
+This is a deep sleep state. There are no indicators in other sleep modes.
 - Bluetooth connection indicators will be lit blue when establishing connection. This lights the corresponding
 BT mode key. No indicator for RF as the sidelight is a different colour.
 - Default startup LED brightness set to zero and side led set to lowest brightness. This is because I don't use LEDs so I don't need to toggle them off when resetting the board or flashing new firmware.
 - 3ms debounce instead of 2ms (potential stability)
+- 3 sleep modes (inspired by @adi4086) - Toggle with the default sleep mode button.
+  - Deep Sleep (NRF off, MCU off, LED off) - lowest power consumption. This is the default.
+  - Light Sleep (NRF off, LED off) - no real reason to use this, but might wake up quicker.
+  - No Sleep - for those that want their board to always be on... 
 
 ## Fixes
 

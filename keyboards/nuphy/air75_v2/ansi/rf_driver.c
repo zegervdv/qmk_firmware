@@ -21,7 +21,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "rf_queue.h"
 
 /* Variable declaration */
-extern DEV_INFO_STRUCT dev_info;
 extern report_buffer_t report_buff_a;
 extern report_buffer_t report_buff_b;
 extern rf_queue_t      rf_queue;

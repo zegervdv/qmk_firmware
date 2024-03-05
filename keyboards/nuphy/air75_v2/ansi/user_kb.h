@@ -39,7 +39,7 @@ typedef enum {
 
 } TYPE_RX_STATE;
 
-
+// clang-format off
 #define RF_IDLE                 0
 #define RF_PAIRING              1
 #define RF_LINKING              2
@@ -108,6 +108,11 @@ typedef enum {
 #define DEV_RESET_PRESS_DELAY   30
 #define RGB_TEST_PRESS_DELAY    30
 
+#define SLEEP_MODE_OFF          0
+#define SLEEP_MODE_LIGHT        1
+#define SLEEP_MODE_DEEP         2
+// clang-format on
+
 typedef struct {
     uint8_t  RXDState;
     uint8_t  RXDLen;
@@ -120,8 +125,7 @@ typedef struct {
     uint8_t  RXDBuf[UART_MAX_LEN];
 } USART_MGR_STRUCT;
 
-typedef struct
-{
+typedef struct {
     uint8_t link_mode;
     uint8_t rf_channel;
     uint8_t ble_channel;
@@ -139,11 +143,40 @@ typedef struct {
     uint8_t  ee_side_speed;
     uint8_t  ee_side_rgb;
     uint8_t  ee_side_colour;
-    uint8_t  sleep_enable;
+    uint8_t  sleep_mode;
     uint16_t rf_link_timeout;
     uint8_t  retain1;
     uint8_t  retain2;
 } user_config_t;
+
+// Globals
+extern DEV_INFO_STRUCT    dev_info;
+extern user_config_t      user_config;
+extern uint8_t            rf_blink_cnt;
+extern uint16_t           rf_link_show_time;
+extern uint16_t           side_led_last_act;
+extern bool               f_bat_hold;
+extern bool               f_sys_show;
+extern bool               f_sleep_show;
+extern RGB                bat_pct_rgb;
+extern bool               f_rf_sw_press;
+extern bool               f_dev_reset_press;
+extern bool               f_bat_num_show;
+extern bool               f_rgb_test_press;
+extern uint16_t           no_act_time;
+extern uint8_t            rf_sw_temp;
+extern uint16_t           rf_sw_press_delay;
+extern uint16_t           rf_linking_time;
+extern uint16_t           sleep_time_delay;
+extern bool               f_wakeup_prepare;
+extern bool               f_rf_new_adv_ok;
+extern report_keyboard_t *keyboard_report;
+extern report_nkro_t *    nkro_report;
+extern uint8_t            side_mode;
+extern uint8_t            side_light;
+extern uint8_t            side_speed;
+extern uint8_t            side_rgb;
+extern uint8_t            side_colour;
 
 void    dev_sts_sync(void);
 void    rf_uart_init(void);
@@ -171,4 +204,5 @@ void    load_eeprom_data(void);
 void    user_config_reset(void);
 void    user_set_rgb_color(int index, uint8_t red, uint8_t green, uint8_t blue);
 void    led_power_handle(void);
+void    toggle_sleep_mode(void);
 uint8_t uart_send_cmd(uint8_t cmd, uint8_t ack_cnt, uint8_t delayms);

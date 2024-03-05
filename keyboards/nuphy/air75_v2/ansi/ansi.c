@@ -20,30 +20,28 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "usb_main.h"
 #include "mcu_pwr.h"
 
-extern bool            f_rf_sw_press;
-extern bool            f_sleep_show;
-extern bool            f_dev_reset_press;
-extern bool            f_bat_num_show;
-extern bool            f_rgb_test_press;
-extern bool            f_bat_hold;
-extern uint16_t        no_act_time;
-extern uint8_t         rf_sw_temp;
-extern uint16_t        rf_sw_press_delay;
-extern uint16_t        rf_linking_time;
-extern uint16_t        sleep_time_delay;
-extern user_config_t   user_config;
-extern DEV_INFO_STRUCT dev_info;
-extern uint8_t         rf_blink_cnt;
-
-/* qmk process record */
-bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
+bool pre_process_record_kb(uint16_t keycode, keyrecord_t *record) {
     no_act_time     = 0;
     rf_linking_time = 0;
 
-    if (!process_record_user(keycode, record)) {
+    // wakeup check for light sleep/no sleep - fire this immediately to not lose wake keys.
+    if (f_wakeup_prepare) {
+        f_wakeup_prepare = 0;
+        if (user_config.sleep_mode) exit_light_sleep();
+    }
+
+    if (!pre_process_record_user(keycode, record)) {
         return false;
     }
 
+    return true;
+}
+
+/* qmk process record */
+bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
+    if (!process_record_user(keycode, record)) {
+        return false;
+    }
     switch (keycode) {
         case RF_DFU:
             if (record->event.pressed) {
@@ -200,9 +198,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
 
         case SLEEP_MODE:
             if (record->event.pressed) {
-                user_config.sleep_enable = !user_config.sleep_enable;
-                f_sleep_show             = 1;
-                eeconfig_update_kb_datablock(&user_config);
+                toggle_sleep_mode();
             }
             return false;
 
@@ -237,7 +233,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
         case KB_SLP:
             if (record->event.pressed) {
                 uint16_t mask = (100 * 30) ^ SLEEP_TIME_DELAY; // 30s or default
-                sleep_time_delay ^= mask; // XOR swap
+                sleep_time_delay ^= mask;                      // XOR swap
             }
             return false;
 

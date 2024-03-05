@@ -55,7 +55,7 @@ void deep_sleep_handle(void) {
     // Without doing this, the WS2812 driver wouldn't flush as the previous state is the same as current.
     rgb_matrix_set_color_all(0, 0, 0);
     flush_side_leds = true;
-    no_act_time = 0; // required to not cause an immediate sleep on first wake
+    no_act_time     = 0; // required to not cause an immediate sleep on first wake
 }
 
 /**
@@ -77,42 +77,13 @@ void sleep_handle(void) {
         rf_disconnect_time = 0;
         rf_linking_time    = 0;
 
-        if (user_config.sleep_enable) {
-            bool deep_sleep = 1;
-            // light sleep if charging? Charging event might keep waking MCU. To be confirmed...
-            if (dev_info.rf_charge & 0x01) {
-                deep_sleep = 0;
-            }
-            // or if it's in USB mode but USB state is suspended
-            // TODO: How to detect if USB is unplugged? I only use RF so not a big deal I guess...
-            else if (dev_info.link_mode == LINK_USB && USB_DRIVER.state == USB_SUSPENDED) {
-                deep_sleep = 0;
-            }
-
-            if (deep_sleep) {
-                deep_sleep_handle();
-                return; // don't need to do anything else
-            } else {
-                enter_light_sleep();
-            }
+        if (user_config.sleep_mode == SLEEP_MODE_DEEP) {
+            deep_sleep_handle();
+            return; // don't need to do anything else
+        } else if (user_config.sleep_mode == SLEEP_MODE_LIGHT) {
+            enter_light_sleep();
         }
         f_wakeup_prepare = 1; // only if light sleep.
-    }
-
-    // wakeup check
-    // we only arrive here on light sleep.
-    if (f_wakeup_prepare) {
-        if (no_act_time < 10) { // activity wake up
-            f_wakeup_prepare = 0;
-            if (user_config.sleep_enable) exit_light_sleep();
-        }
-        // No longer charging? Go deep sleep.
-        // TODO: don't really know true charge bit logic. I'm just guessing here.
-        else if (user_config.sleep_enable && (dev_info.rf_charge & 0x01) == 0) {
-            f_wakeup_prepare = 0;
-            deep_sleep_handle();
-            return;
-        }
     }
 
     // sleep check, won't reach here on deep sleep.

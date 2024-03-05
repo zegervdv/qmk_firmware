@@ -27,6 +27,7 @@ static const pin_t col_pins[MATRIX_COLS] = MATRIX_COL_PINS;
 extern DEV_INFO_STRUCT dev_info;
 
 static bool f_usb_deinit         = 0;
+static bool sleeping             = false;
 static bool side_led_powered_off = 0;
 static bool rgb_led_powered_off  = 0;
 static bool tim6_enabled         = false;
@@ -216,6 +217,7 @@ void enter_light_sleep(void) {
 
     led_pwr_sleep_handle();
     clear_report_buffer();
+    sleeping = true;
 }
 
 /**
@@ -234,6 +236,7 @@ void exit_light_sleep(void) {
 
     // flag for RF wakeup workload.
     dev_info.rf_state = RF_WAKE;
+    sleeping          = false;
 }
 
 void led_pwr_sleep_handle(void) {
@@ -271,7 +274,7 @@ void pwr_rgb_led_off(void) {
 }
 
 void pwr_rgb_led_on(void) {
-    if (rgb_led_on) return;
+    if (sleeping || rgb_led_on) return;
     // LED power supply on
     gpio_set_pin_output(DC_BOOST_PIN);
     gpio_write_pin_high(DC_BOOST_PIN);
@@ -287,7 +290,7 @@ void pwr_side_led_off(void) {
 }
 
 void pwr_side_led_on(void) {
-    if (side_led_on) return;
+    if (sleeping || side_led_on) return;
     gpio_set_pin_output(DRIVER_SIDE_CS_PIN);
     gpio_write_pin_low(DRIVER_SIDE_CS_PIN);
     side_led_on = 1;
