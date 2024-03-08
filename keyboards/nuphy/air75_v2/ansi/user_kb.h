@@ -137,12 +137,12 @@ typedef struct {
 } DEV_INFO_STRUCT;
 
 typedef struct {
-    uint8_t  default_brightness_flag;
-    uint8_t  ee_side_mode;
-    uint8_t  ee_side_light;
-    uint8_t  ee_side_speed;
-    uint8_t  ee_side_rgb;
-    uint8_t  ee_side_colour;
+    uint8_t  init_flag;
+    uint8_t  side_mode;
+    uint8_t  side_light;
+    uint8_t  side_speed;
+    uint8_t  side_rgb;
+    uint8_t  side_colour;
     uint8_t  sleep_mode;
     uint16_t rf_link_timeout;
     uint8_t  retain1;
@@ -172,11 +172,6 @@ extern bool               f_wakeup_prepare;
 extern bool               f_rf_new_adv_ok;
 extern report_keyboard_t *keyboard_report;
 extern report_nkro_t *    nkro_report;
-extern uint8_t            side_mode;
-extern uint8_t            side_light;
-extern uint8_t            side_speed;
-extern uint8_t            side_rgb;
-extern uint8_t            side_colour;
 
 void    dev_sts_sync(void);
 void    rf_uart_init(void);
