@@ -22,7 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "mcu_pwr.h"
 #include "rf_queue.h"
 
-extern user_config_t   user_config;
+extern kb_config_t     kb_config;
 extern DEV_INFO_STRUCT dev_info;
 extern uint16_t        rf_linking_time;
 extern uint16_t        rf_link_timeout;
@@ -77,10 +77,10 @@ void sleep_handle(void) {
         rf_disconnect_time = 0;
         rf_linking_time    = 0;
 
-        if (user_config.sleep_mode == SLEEP_MODE_DEEP) {
+        if (kb_config.sleep_mode == SLEEP_MODE_DEEP) {
             deep_sleep_handle();
             return; // don't need to do anything else
-        } else if (user_config.sleep_mode == SLEEP_MODE_LIGHT) {
+        } else if (kb_config.sleep_mode == SLEEP_MODE_LIGHT) {
             enter_light_sleep();
         }
         f_wakeup_prepare = 1; // only if light sleep.
@@ -100,7 +100,7 @@ void sleep_handle(void) {
         }
     } else if (no_act_time >= sleep_time_delay) {
         f_goto_sleep = 1;
-    } else if (rf_linking_time >= user_config.rf_link_timeout) {
+    } else if (rf_linking_time >= kb_config.rf_link_timeout) {
         f_goto_sleep = 1;
     } else if (dev_info.rf_state == RF_DISCONNECT) {
         rf_disconnect_time++;

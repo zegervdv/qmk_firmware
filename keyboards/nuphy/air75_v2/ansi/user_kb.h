@@ -147,11 +147,11 @@ typedef struct {
     uint16_t rf_link_timeout;
     uint8_t  retain1;
     uint8_t  retain2;
-} user_config_t;
+} kb_config_t;
 
 // Globals
 extern DEV_INFO_STRUCT    dev_info;
-extern user_config_t      user_config;
+extern kb_config_t        kb_config;
 extern uint8_t            rf_blink_cnt;
 extern uint16_t           rf_link_show_time;
 extern uint16_t           side_led_last_act;
@@ -196,7 +196,7 @@ void    dial_sw_scan(void);
 void    dial_sw_fast_scan(void);
 void    timer_pro(void);
 void    load_eeprom_data(void);
-void    user_config_reset(void);
+void    kb_config_reset(void);
 void    user_set_rgb_color(int index, uint8_t red, uint8_t green, uint8_t blue);
 void    led_power_handle(void);
 void    toggle_sleep_mode(void);

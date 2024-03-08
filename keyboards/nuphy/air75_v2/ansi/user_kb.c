@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "mcu_pwr.h"
 #include "color.h"
 
-user_config_t   user_config;
+kb_config_t     kb_config;
 DEV_INFO_STRUCT dev_info = {
     .rf_battery = 100,
     .link_mode  = LINK_USB,
@@ -384,28 +384,28 @@ void timer_pro(void) {
  * @brief  load eeprom data.
  */
 void load_eeprom_data(void) {
-    eeconfig_read_kb_datablock(&user_config);
-    if (user_config.init_flag != 0xA5) {
-        user_config_reset();
+    eeconfig_read_kb_datablock(&kb_config);
+    if (kb_config.init_flag != 0xA5) {
+        kb_config_reset();
     }
 }
 
 /**
  * @brief User config to default setting.
  */
-void user_config_reset(void) {
+void kb_config_reset(void) {
     /* first power on, set rgb matrix brightness off */
     rgb_matrix_sethsv(255, 255, 0);
 
-    user_config.init_flag       = 0xA5;
-    user_config.side_mode       = 0; // SIDE_WAVE
-    user_config.side_light      = 1;
-    user_config.side_speed      = 2;
-    user_config.side_rgb        = 1;
-    user_config.side_colour     = 0;
-    user_config.sleep_mode      = SLEEP_MODE_DEEP;
-    user_config.rf_link_timeout = LINK_TIMEOUT_ALT;
-    eeconfig_update_kb_datablock(&user_config);
+    kb_config.init_flag       = 0xA5;
+    kb_config.side_mode       = 0; // SIDE_WAVE
+    kb_config.side_light      = 1;
+    kb_config.side_speed      = 2;
+    kb_config.side_rgb        = 1;
+    kb_config.side_colour     = 0;
+    kb_config.sleep_mode      = SLEEP_MODE_DEEP;
+    kb_config.rf_link_timeout = LINK_TIMEOUT_ALT;
+    eeconfig_update_kb_datablock(&kb_config);
 }
 
 /**
@@ -496,7 +496,7 @@ void led_power_handle(void) {
     }
 
     if (side_led_last_act > 100) { // 10ms intervals
-        if (user_config.side_light == 0) {
+        if (kb_config.side_light == 0) {
             pwr_side_led_off();
         } else {
             pwr_side_led_on();
@@ -505,11 +505,11 @@ void led_power_handle(void) {
 }
 
 void toggle_sleep_mode(void) {
-    if (user_config.sleep_mode > SLEEP_MODE_OFF) {
-        user_config.sleep_mode--;
+    if (kb_config.sleep_mode > SLEEP_MODE_OFF) {
+        kb_config.sleep_mode--;
     } else {
-        user_config.sleep_mode = SLEEP_MODE_DEEP;
+        kb_config.sleep_mode = SLEEP_MODE_DEEP;
     }
     f_sleep_show = 1;
-    eeconfig_update_kb_datablock(&user_config);
+    eeconfig_update_kb_datablock(&kb_config);
 }
