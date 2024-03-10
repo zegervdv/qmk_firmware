@@ -43,13 +43,11 @@ void uart_send_report(uint8_t report_type, uint8_t *report_buf, uint8_t report_s
  *
  */
 static void send_or_queue(report_buffer_t *report) {
-    clear_report_buffer(); // clear before sending
     if (dev_info.rf_state == RF_CONNECT && rf_queue.is_empty()) {
         uart_send_report(report->cmd, report->buffer, report->length);
     } else {
         rf_queue.enqueue(report);
     }
-    report_buff_a = *report;
 }
 
 static report_buffer_t make_report_buffer(uint8_t cmd, uint8_t *buff, uint8_t len) {
@@ -115,22 +113,17 @@ static void uart_auto_nkey_send(uint8_t *now_bit_report, uint8_t size) {
     }
     memcpy(pre_bit_report, now_bit_report, 16);
 
-    // create report buffers with no cmd so they won't resend.
-    report_buffer_t rpt_byte = make_report_buffer(0, &bytekb_report_buf[0], 8);
-    report_buffer_t rpt_bit  = make_report_buffer(0, &bitkb_report_buf[0], 16);
-
     if (f_byte_send) {
-        rpt_byte.cmd = CMD_RPT_BYTE_KB;
+        report_buffer_t rpt_byte = make_report_buffer(CMD_RPT_BYTE_KB, &bytekb_report_buf[0], 8);
         send_or_queue(&rpt_byte);
+        report_buff_a = rpt_byte;
     }
 
     if (f_bit_send) {
-        rpt_bit.cmd = CMD_RPT_BIT_KB;
+        report_buffer_t rpt_bit = make_report_buffer(CMD_RPT_BIT_KB, &bitkb_report_buf[0], 16);
         send_or_queue(&rpt_bit);
+        report_buff_b = rpt_bit;
     }
-
-    report_buff_a = rpt_byte;
-    report_buff_b = rpt_bit;
 }
 
 static uint8_t rf_keyboard_leds(void) {
@@ -138,12 +131,15 @@ static uint8_t rf_keyboard_leds(void) {
 }
 
 static void rf_send_keyboard(report_keyboard_t *report) {
+    clear_report_buffer();
     report->reserved    = 0;
     report_buffer_t rpt = make_report_buffer(CMD_RPT_BYTE_KB, &report->mods, 8);
     send_or_queue(&rpt);
+    report_buff_a = rpt;
 }
 
 static void rf_send_nkro(report_nkro_t *report) {
+    clear_report_buffer();
     uart_auto_nkey_send(&nkro_report->mods, 16); // only need 1 byte mod + 15 byte keys
 }
 

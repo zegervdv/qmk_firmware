@@ -19,7 +19,7 @@ This is a deep sleep state. There are no indicators in other sleep modes.
 BT mode key. No indicator for RF as the sidelight is a different colour.
 - Default startup LED brightness set to zero and side led set to lowest brightness. This is because I don't use LEDs so I don't need to toggle them off when resetting the board or flashing new firmware.
 - 3ms debounce instead of 2ms (potential stability)
-- 3 sleep modes (inspired by @adi4086) - Toggle with the default sleep mode button.
+- 3 sleep modes (inspired by @adi4086) - Toggle sleep mode button moved to `Fn + M + ]`.
   - Deep Sleep (NRF off, MCU off, LED off) - lowest power consumption. This is the default.
   - Light Sleep (NRF off, LED off) - no real reason to use this, but might wake up quicker.
   - No Sleep - for those that want their board to always be on... 
