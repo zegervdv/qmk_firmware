@@ -35,7 +35,7 @@ static bool tim6_enabled         = false;
 static bool rgb_led_on  = 0;
 static bool side_led_on = 0;
 
-void clear_report_buffer(void);
+void clear_report_buffer_and_queue(void);
 
 /** ================================================================
  * @brief   关闭USB
@@ -158,7 +158,7 @@ void enter_deep_sleep(void) {
     gpio_set_pin_output(NRF_WAKEUP_PIN);
     gpio_write_pin_high(NRF_WAKEUP_PIN);
 
-    clear_report_buffer();
+    clear_report_buffer_and_queue();
 
     // Enter low power mode and wait for interrupt signal
     PWR_EnterSTOPMode(PWR_Regulator_LowPower, PWR_STOPEntry_WFI);
@@ -216,7 +216,7 @@ void enter_light_sleep(void) {
         uart_send_cmd(CMD_SLEEP, 5, 5);
 
     led_pwr_sleep_handle();
-    clear_report_buffer();
+    clear_report_buffer_and_queue();
     sleeping = true;
 }
 

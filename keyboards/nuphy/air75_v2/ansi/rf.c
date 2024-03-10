@@ -83,11 +83,18 @@ static uint8_t get_repeat_interval(void) {
 }
 
 /**
- * @brief Reset report buffers and clear the queue
+ * @brief Reset report buffers.
  */
 void clear_report_buffer(void) {
     if (report_buff_a.cmd) memset(&report_buff_a.cmd, 0, sizeof(report_buffer_t));
     if (report_buff_b.cmd) memset(&report_buff_b.cmd, 0, sizeof(report_buffer_t));
+}
+
+/**
+ * @brief Reset report buffers and clear the queue
+ */
+void clear_report_buffer_and_queue(void) {
+    clear_report_buffer();
     rf_queue.clear();
 }
 
@@ -106,7 +113,7 @@ void uart_send_repeat_from_queue(void) {
 
     // queue is empty, continue sending from standard process.
     if (rf_queue.is_empty()) {
-        clear_report_buffer();
+        clear_report_buffer_and_queue();
         report_buff_a = report_buff;
     }
 
@@ -125,7 +132,7 @@ void uart_send_report_repeat(void) {
 
     if (dev_info.rf_state != RF_CONNECT) {
         // toss away queue after some time if disconnected to prevent sending random keys
-        if (no_act_time > 100) clear_report_buffer(); // 1 second
+        if (no_act_time > 100) clear_report_buffer_and_queue(); // 1 second
         return;
     }
 
@@ -148,7 +155,7 @@ void uart_send_report_repeat(void) {
                 report_buff_b.repeat++;
             }
         } else { // clear the report buffer
-            clear_report_buffer();
+            clear_report_buffer_and_queue();
         }
         uart_rpt_timer = timer_read32();
     }
