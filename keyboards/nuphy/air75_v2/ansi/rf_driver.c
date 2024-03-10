@@ -144,11 +144,13 @@ static void rf_send_nkro(report_nkro_t *report) {
 }
 
 static void rf_send_mouse(report_mouse_t *report) {
+    clear_report_buffer();
     report_buffer_t rpt = make_report_buffer(CMD_RPT_MS, &report->buttons, 5);
     send_or_queue(&rpt);
 }
 
 static void rf_send_extra_helper(uint8_t cmd, report_extra_t *report) {
+    clear_report_buffer();
     report_buffer_t rpt = make_report_buffer(cmd, (uint8_t *)(&report->usage), 2);
     send_or_queue(&rpt);
 }
