@@ -176,13 +176,13 @@ void break_all_key(void) {
     // break nkro key
     keymap_config.nkro = 1;
     memset(nkro_report, 0, sizeof(report_nkro_t));
-    host_nkro_send(nkro_report);
+    send_keyboard_report();
     wait_ms(10);
 
     // break byte key
     keymap_config.nkro = 0;
     memset(keyboard_report, 0, sizeof(report_keyboard_t));
-    host_keyboard_send(keyboard_report);
+    send_keyboard_report();
     wait_ms(10);
 
     keymap_config.nkro = nkro_temp;
