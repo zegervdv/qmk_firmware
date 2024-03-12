@@ -26,7 +26,7 @@ static const pin_t col_pins[MATRIX_COLS] = MATRIX_COL_PINS;
 // 外部变量
 extern DEV_INFO_STRUCT dev_info;
 
-static bool f_usb_deinit         = 0;
+//static bool f_usb_deinit         = 0;
 static bool sleeping             = false;
 static bool side_led_powered_off = 0;
 static bool rgb_led_powered_off  = 0;
@@ -94,10 +94,11 @@ void enter_deep_sleep(void) {
 
     //------------------------ 非USB模式下关闭USB
     // TODO - do we really need to deinitialize USB?
-    if (dev_info.link_mode != LINK_USB) {
-        f_usb_deinit = 1;
-        m_deinit_usb_072(); // 关闭USB
-    }
+    // Commenting this out for now. It causes USB-C chargers to crash the board on wake apparently.
+    // if (dev_info.link_mode != LINK_USB) {
+    //     f_usb_deinit = 1;
+    //     m_deinit_usb_072(); // 关闭USB
+    // }
 
     // 关闭定时器
     if (tim6_enabled) TIM_Cmd(TIM6, DISABLE);
@@ -194,12 +195,12 @@ void exit_deep_sleep(void) {
     uart_send_cmd(CMD_HAND, 0, 1); // 握手
 
     // Should re-init USB regardless probably if it was deinitialized.
-    if (f_usb_deinit) {
-        // USB远程唤醒
-        usbWakeupHost(&USB_DRIVER);
-        restart_usb_driver(&USB_DRIVER);
-        f_usb_deinit = 0;
-    }
+    // if (f_usb_deinit) {
+    //     // USB远程唤醒
+    //     usbWakeupHost(&USB_DRIVER);
+    //     restart_usb_driver(&USB_DRIVER);
+    //     f_usb_deinit = 0;
+    // }
 
     // flag for RF wakeup workload.
     dev_info.rf_state = RF_WAKE;
