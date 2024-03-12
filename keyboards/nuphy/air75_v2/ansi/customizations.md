@@ -36,6 +36,19 @@ BT mode key. No indicator for RF as the sidelight is a different colour.
 - Slightly enhanced sidelight refresh intervals for smoother animations.
 - Reduced unused side LED tables to save a chunk of memory. This may be essential to the RF queue as the board only has 16kb memory available - the queue alone uses over 1.2kb.
 
+## VIA
+
+This firmware is still compatible with VIA. Grab the latest/most relevant [VIA JSON](/keyboards/nuphy/air75_v2/ansi/keymaps/via/air75_v2_via_v3.json) and load it into VIA using the *Design* tab. This is used the same way as stock NuPhy. I'm not a Mac user so this is default behaviour placed here for reference.
+
+The following keys are unnamed as they are QMK key combinations. They will show as follows in VIA as there is no way to customize these names in VIA.
+
+| Key Code     | Function               |
+| ------------ | ---------------------- |
+| `0xc1`       | Launch Mission Control |
+| `G(KC_SPC)`  | Mac Search             |
+| `G(S(KC_4))` | Mac Print Screen Area  |
+| `G(S(KC_3))` | Mac Print Screen Whole |
+
 ## Author
 
 [@jincao1](https://github.com/jincao1)
