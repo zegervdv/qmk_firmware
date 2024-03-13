@@ -73,9 +73,10 @@ void sleep_handle(void) {
     // sleep process;
     if (f_goto_sleep) {
         // reset all counters
-        f_goto_sleep       = 0;
-        rf_disconnect_time = 0;
-        rf_linking_time    = 0;
+        f_goto_sleep         = 0;
+        rf_disconnect_time   = 0;
+        rf_linking_time      = 0;
+        usb_suspend_debounce = 0;
 
         if (kb_config.sleep_mode == SLEEP_MODE_DEEP) {
             deep_sleep_handle();
