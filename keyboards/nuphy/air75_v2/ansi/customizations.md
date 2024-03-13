@@ -23,6 +23,7 @@ BT mode key. No indicator for RF as the sidelight is a different colour.
   - Deep Sleep (NRF off, MCU off, LED off) - lowest power consumption. This is the default.
   - Light Sleep (NRF off, LED off) - no real reason to use this, but might wake up quicker.
   - No Sleep - for those that want their board to always be on... 
+- Keyboard will never go to deep sleep in USB mode. This seems to cause issues on wake and I don't have a solution. I'm expecting that the device is powered and if it's not the keyboard would reset anyway.
 
 ## Fixes
 
