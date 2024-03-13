@@ -197,9 +197,8 @@ void break_all_key(void) {
  */
 void switch_dev_link(uint8_t mode) {
     if (mode > LINK_USB) return;
-
+    no_act_time = 0;
     break_all_key();
-
     dev_info.link_mode = mode;
 
     dev_info.rf_state = RF_IDLE;
@@ -343,7 +342,6 @@ void dial_sw_fast_scan(void) {
         }
     } else {
         if (dev_info.sys_sw_state != SYS_SW_WIN) {
-            // f_sys_show = 1;
             default_layer_set(1 << 2);
             dev_info.sys_sw_state = SYS_SW_WIN;
             keymap_config.nkro    = 1;
