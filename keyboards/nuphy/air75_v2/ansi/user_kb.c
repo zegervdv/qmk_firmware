@@ -433,14 +433,30 @@ void bat_pct_led_kb(void) {
 }
 
 /**
- * @brief Updates RGB value for current bat percentage.
+ * @brief Updates RGB value and sets current bat percentage.
  */
-void update_bat_pct_rgb(void) {
-    uint8_t bat_pct = dev_info.rf_battery;
+void update_bat_pct_rgb(uint8_t bat_percent) {
+    static uint8_t  bat_pct          = 0;
+    static uint32_t bat_per_debounce = 0;
 
-    if (bat_pct > 100) {
-        bat_pct = 100;
+    if (bat_percent > 100) {
+        bat_percent = 100;
     }
+
+    // no change, update timer and move on.
+    if (bat_pct == bat_percent) {
+        bat_per_debounce = timer_read32();
+        return;
+    }
+
+    // update only when battery stabilizes. Battery level could blip.
+    if (timer_elapsed32(bat_per_debounce) <= 1000) {
+        return;
+    }
+
+    bat_pct             = bat_percent;
+    dev_info.rf_battery = bat_percent;
+
     // 120 hue is green, 0 is red on a 360 degree wheel but QMK is a uint8_t
     // so it needs to convert to relative to 255 - so green is actually 85.
     uint8_t h = 85;

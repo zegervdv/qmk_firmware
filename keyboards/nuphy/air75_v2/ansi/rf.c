@@ -222,11 +222,10 @@ void rf_protocol_receive(void) {
 
                     dev_info.rf_charge = Usart_Mgr.RXDBuf[7];
                     uint8_t bat_pct    = Usart_Mgr.RXDBuf[8];
+                    if (dev_info.rf_charge & 0x01) bat_pct = 100;
                     if (bat_pct > 0 && bat_pct <= 100) {
-                        dev_info.rf_battery = bat_pct;
+                        update_bat_pct_rgb(bat_pct);
                     }
-                    if (dev_info.rf_charge & 0x01) dev_info.rf_battery = 100;
-                    update_bat_pct_rgb();
                 } else {
                     if (dev_info.rf_state != RF_INVAILD) {
                         if (error_cnt >= 5) {
