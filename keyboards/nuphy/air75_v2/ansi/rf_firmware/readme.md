@@ -11,7 +11,7 @@ Refer to the [Flashing Instructions](Instructions_on_Flashing_the_RF_Firmwares.d
 
 # Compatibility
 
-The RF firmware is compatible on Air75 V2, Air60 V2 and Air90 V2 since all 3 boards use the same hardware.
+The RF firmware is compatible on Air75 V2, Air60 V2 and Air96 V2 since all 3 boards use the same hardware.
 
 # Improvements
 
