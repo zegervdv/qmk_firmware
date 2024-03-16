@@ -50,6 +50,11 @@ The following keys are unnamed as they are QMK key combinations. They will show 
 | `G(S(KC_4))` | Mac Print Screen Area  |
 | `G(S(KC_3))` | Mac Print Screen Whole |
 
+## RF Firmware
+
+This firmware is built and tested against NuPhy's RF firmware `v1.0.3`. Refer to the [RF Firmware folder](rf_firmware) if you want to get the update.
+The experience you get with the firmware may vary from mine and is dependent on various external factors.
+
 ## Author
 
 [@jincao1](https://github.com/jincao1)
