@@ -169,20 +169,20 @@ void long_press_key(void) {
 void break_all_key(void) {
     bool nkro_temp = keymap_config.nkro;
 
+    // break current keyboard mode
     clear_weak_mods();
     clear_mods();
-    clear_keyboard();
+    clear_keyboard(); // this already sends the report.
+    wait_ms(10);
 
     // break nkro key
     keymap_config.nkro = 1;
-    memset(nkro_report, 0, sizeof(report_nkro_t));
-    send_keyboard_report();
+    clear_keyboard();
     wait_ms(10);
 
     // break byte key
     keymap_config.nkro = 0;
-    memset(keyboard_report, 0, sizeof(report_keyboard_t));
-    send_keyboard_report();
+    clear_keyboard();
     wait_ms(10);
 
     keymap_config.nkro = nkro_temp;
@@ -335,17 +335,17 @@ void dial_sw_fast_scan(void) {
     // Win or Mac
     if (dial_scan_sys) {
         if (dev_info.sys_sw_state != SYS_SW_MAC) {
+            break_all_key();
             default_layer_set(1 << 0);
             dev_info.sys_sw_state = SYS_SW_MAC;
             keymap_config.nkro    = 0;
-            break_all_key();
         }
     } else {
         if (dev_info.sys_sw_state != SYS_SW_WIN) {
+            break_all_key();
             default_layer_set(1 << 2);
             dev_info.sys_sw_state = SYS_SW_WIN;
             keymap_config.nkro    = 1;
-            break_all_key();
         }
     }
 }
