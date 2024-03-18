@@ -170,8 +170,6 @@ extern uint16_t           rf_linking_time;
 extern uint16_t           sleep_time_delay;
 extern bool               f_wakeup_prepare;
 extern bool               f_rf_new_adv_ok;
-extern report_keyboard_t *keyboard_report;
-extern report_nkro_t *    nkro_report;
 
 void    dev_sts_sync(void);
 void    rf_uart_init(void);

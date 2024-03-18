@@ -175,13 +175,8 @@ void break_all_key(void) {
     clear_keyboard(); // this already sends the report.
     wait_ms(10);
 
-    // break nkro key
-    keymap_config.nkro = 1;
-    clear_keyboard();
-    wait_ms(10);
-
-    // break byte key
-    keymap_config.nkro = 0;
+    // break the other keyboard mode
+    keymap_config.nkro = !keymap_config.nkro;
     clear_keyboard();
     wait_ms(10);
 
@@ -265,16 +260,16 @@ void dial_sw_scan(void) {
             f_sys_show = 1;
             default_layer_set(1 << 0);
             dev_info.sys_sw_state = SYS_SW_MAC;
-            keymap_config.nkro    = 0;
             break_all_key();
+            keymap_config.nkro = 0;
         }
     } else {
         if (dev_info.sys_sw_state != SYS_SW_WIN) {
             f_sys_show = 1;
             default_layer_set(1 << 2);
             dev_info.sys_sw_state = SYS_SW_WIN;
-            keymap_config.nkro    = 1;
             break_all_key();
+            keymap_config.nkro = 1;
         }
     }
 
