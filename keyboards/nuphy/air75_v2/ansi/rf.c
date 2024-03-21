@@ -147,7 +147,7 @@ void uart_send_report_repeat(void) {
 
     uint8_t interval = get_repeat_interval();
     if (timer_elapsed32(uart_rpt_timer) >= interval) {
-        if (no_act_time <= 50) { // increments every 10ms, 50 = 500ms
+        if (no_act_time <= 25) { // increments every 10ms
             if (report_buff_a.cmd) {
                 uart_send_report(report_buff_a.cmd, report_buff_a.buffer, report_buff_a.length);
                 report_buff_a.repeat++;
