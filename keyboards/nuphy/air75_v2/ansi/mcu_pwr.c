@@ -25,8 +25,9 @@ static const pin_t col_pins[MATRIX_COLS] = MATRIX_COL_PINS;
 //------------------------------------------------
 // 外部变量
 extern DEV_INFO_STRUCT dev_info;
+extern bool            flush_side_leds;
 
-//static bool f_usb_deinit         = 0;
+// static bool f_usb_deinit         = 0;
 static bool sleeping             = false;
 static bool side_led_powered_off = 0;
 static bool rgb_led_powered_off  = 0;
@@ -259,9 +260,13 @@ void led_pwr_sleep_handle(void) {
 void led_pwr_wake_handle(void) {
     if (rgb_led_powered_off) {
         pwr_rgb_led_on();
+        // Change any LED's state so the LED driver flushes after turning on for solid colours.
+        // Without doing this, the WS2812 driver wouldn't flush as the previous state is the same as current.
+        rgb_matrix_set_color_all(0, 0, 0);
     }
     if (side_led_powered_off) {
         pwr_side_led_on();
+        flush_side_leds = true;
     }
 }
 
