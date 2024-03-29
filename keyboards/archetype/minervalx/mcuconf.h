@@ -1,4 +1,4 @@
-/* Copyright 2020 marksard
+/* Copyright 2024 Archetype Made, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 
 #pragma once
 
-// place overrides here
-#define TAPPING_TERM 200
-#define TAPPING_LAYER_TERM 150 // Custom LT Tapping term
-#define TAPPING_TERM_PER_KEY
+#include_next <mcuconf.h>
+
+#undef RP_PWM_USE_PWM5
+#define RP_PWM_USE_PWM5 TRUE

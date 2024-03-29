@@ -1,4 +1,4 @@
-/* Copyright 2020 marksard
+/* Copyright 2024 Archetype Made, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 
 #pragma once
 
-// place overrides here
-#define TAPPING_TERM 200
-#define TAPPING_LAYER_TERM 150 // Custom LT Tapping term
-#define TAPPING_TERM_PER_KEY
+#define RP2040_BOOTLOADER_DOUBLE_TAP_RESET
+
+#define BACKLIGHT_PWM_DRIVER PWMD5
+#define BACKLIGHT_PWM_CHANNEL RP2040_PWM_CHANNEL_A
