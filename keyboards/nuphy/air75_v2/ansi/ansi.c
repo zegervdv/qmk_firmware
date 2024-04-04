@@ -30,11 +30,7 @@ bool pre_process_record_kb(uint16_t keycode, keyrecord_t *record) {
         if (kb_config.sleep_mode) exit_light_sleep();
     }
 
-    if (!pre_process_record_user(keycode, record)) {
-        return false;
-    }
-
-    return true;
+    return pre_process_record_user(keycode, record);
 }
 
 /* qmk process record */
