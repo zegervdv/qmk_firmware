@@ -106,7 +106,7 @@ void uart_send_repeat_from_queue(void) {
     static uint32_t        repeat_timer  = 0;
     static report_buffer_t report_buff   = {0};
     static bool            do_repeat     = true;
-    if (timer_elapsed32(dequeue_timer) > 25 && !rf_queue.is_empty()) {
+    if (timer_elapsed32(dequeue_timer) >= 30 && !rf_queue.is_empty()) {
         rf_queue.dequeue(&report_buff);
         dequeue_timer = timer_read32();
         // Repeat only keyboard reports. Extra reports actually repeat the keys.
@@ -119,7 +119,7 @@ void uart_send_repeat_from_queue(void) {
         if (do_repeat) report_buff_a = report_buff;
     }
 
-    if (report_buff.repeat == 0 || (do_repeat && timer_elapsed32(repeat_timer) > 3)) {
+    if (report_buff.repeat == 0 || (do_repeat && timer_elapsed32(repeat_timer) >= 3)) {
         uart_send_report(report_buff.cmd, report_buff.buffer, report_buff.length);
         report_buff.repeat++;
         repeat_timer = timer_read32();
