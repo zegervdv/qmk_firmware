@@ -25,7 +25,11 @@
     },
     "processor": "STM32F072",
     "bootloader": "stm32-dfu",
-    "debounce": 3,
+    "debounce": 2,
+    "build": {
+        "debounce_type": "sym_defer_pk",
+        "lto": true
+    },
     "matrix_pins": {
         "cols": ["A4", "A5", "A6", "B9", "B0", "B1", "B10", "B11", "B12", "B13", "B14", "B15", "A8", "A9", "A10", "A15", "B3"],
         "rows": ["C14", "C15", "A0", "A1", "A2", "A3"]

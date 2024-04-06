@@ -18,7 +18,7 @@ This is a deep sleep state. There are no indicators in other sleep modes.
 - Bluetooth connection indicators will be lit blue when establishing connection. This lights the corresponding
 BT mode key. No indicator for RF as the sidelight is a different colour.
 - Default startup LED brightness set to zero and side led set to lowest brightness. This is because I don't use LEDs so I don't need to toggle them off when resetting the board or flashing new firmware.
-- 3ms debounce instead of 2ms (potential stability)
+- Change debounce algorithm to `sym_defer_pk`. MCU should be fast enough to handle this.
 - 3 sleep modes (inspired by @adi4086) - Toggle sleep mode button moved to `Fn + M + ]`.
   - Deep Sleep (NRF off, MCU off, LED off) - lowest power consumption. This is the default. Right indicator blinks green.
   - Light Sleep (NRF off, LED off) - no real reason to use this, but might wake up quicker. Right indicator blinks yellow.
