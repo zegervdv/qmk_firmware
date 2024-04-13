@@ -50,7 +50,7 @@ void deep_sleep_handle(void) {
     enter_deep_sleep(); // puts the board in WFI mode and pauses the MCU
     exit_deep_sleep();  // This gets called when there is an interrupt (wake) event.
 
-    no_act_time     = 0; // required to not cause an immediate sleep on first wake
+    no_act_time = 0; // required to not cause an immediate sleep on first wake
 }
 
 /**
@@ -73,9 +73,12 @@ void sleep_handle(void) {
         rf_linking_time      = 0;
         usb_suspend_debounce = 0;
 
-        // Don't deep sleep if in USB mode. Board may have issues waking as reported by others. I assume it's being
-        // powered if USB port is on, or otherwise it's disconnected at the hardware level if USB port is off..
-        if (kb_config.sleep_mode != SLEEP_MODE_OFF && dev_info.link_mode == LINK_USB) {
+        // don't deep sleep if charging on wireless, charging interrupts and wakes the MCU
+        if (kb_config.sleep_mode != SLEEP_MODE_OFF && dev_info.link_mode < LINK_USB && dev_info.rf_charge & 0x01) {
+            enter_light_sleep();
+            // Don't deep sleep if in USB mode. Board may have issues waking as reported by others. I assume it's being
+            // powered if USB port is on, or otherwise it's disconnected at the hardware level if USB port is off..
+        } else if (kb_config.sleep_mode != SLEEP_MODE_OFF && dev_info.link_mode == LINK_USB) {
             enter_light_sleep();
         } else if (kb_config.sleep_mode == SLEEP_MODE_DEEP) {
             deep_sleep_handle();
