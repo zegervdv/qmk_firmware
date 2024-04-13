@@ -73,11 +73,11 @@ static uint8_t get_repeat_interval(void) {
     if (interval == 0) {
         return 50;
     } else if (interval <= 4) {
-        return 6;
-    } else if (interval <= 7) {
         return 8;
+    } else if (interval <= 7) {
+        return 12;
     } else if (interval <= 10) {
-        return 10;
+        return 14;
     }
     return 25;
 }
