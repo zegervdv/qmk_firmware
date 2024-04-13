@@ -25,9 +25,8 @@
     },
     "processor": "STM32F072",
     "bootloader": "stm32-dfu",
-    "debounce": 2,
+    "debounce": 3,
     "build": {
-        "debounce_type": "sym_defer_pk",
         "lto": true
     },
     "matrix_pins": {
