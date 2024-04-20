@@ -163,25 +163,39 @@ void long_press_key(void) {
     }
 }
 
+// RF repeat incase key break doesn't register properly...
+void rf_repeat_key_break(void) {
+    if (dev_info.link_mode == LINK_USB) return;
+    for (uint8_t i = 0; i < 10; i++) {
+        uart_send_report_repeat();
+        wait_ms(5);
+        uart_receive_pro();
+        wait_ms(5);
+    }
+}
+
 /**
  * @brief  Release all keys, clear keyboard report.
  */
 void break_all_key(void) {
-    bool nkro_temp = keymap_config.nkro;
+    // bool nkro_temp = keymap_config.nkro;
 
     // break current keyboard mode
     clear_weak_mods();
     clear_mods();
     clear_keyboard(); // this already sends the report.
     wait_ms(10);
+    rf_repeat_key_break();
 
     // break the other keyboard mode
+    // probably not necessary, commenting out for now.
+    /*
     keymap_config.nkro = !keymap_config.nkro;
     clear_keyboard();
     wait_ms(10);
 
     keymap_config.nkro = nkro_temp;
-
+    */
     void clear_report_buffer_and_queue(void);
     clear_report_buffer_and_queue();
 }
@@ -521,4 +535,11 @@ void toggle_sleep_mode(void) {
     }
     f_sleep_show = 1;
     eeconfig_update_kb_datablock(&kb_config);
+}
+
+void link_mode_set(void) {
+    dev_info.link_mode   = rf_sw_temp;
+    dev_info.rf_channel  = rf_sw_temp;
+    dev_info.ble_channel = rf_sw_temp;
+    uart_send_cmd(CMD_SET_LINK, 10, 20);
 }

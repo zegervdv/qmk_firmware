@@ -64,12 +64,8 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
                 }
             } else if (f_rf_sw_press) {
                 f_rf_sw_press = 0;
-
                 if (rf_sw_press_delay < RF_LONG_PRESS_DELAY) {
-                    dev_info.link_mode   = rf_sw_temp;
-                    dev_info.rf_channel  = rf_sw_temp;
-                    dev_info.ble_channel = rf_sw_temp;
-                    uart_send_cmd(CMD_SET_LINK, 10, 20);
+                    link_mode_set();
                 }
             }
             return false;
@@ -83,12 +79,8 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
                 }
             } else if (f_rf_sw_press) {
                 f_rf_sw_press = 0;
-
                 if (rf_sw_press_delay < RF_LONG_PRESS_DELAY) {
-                    dev_info.link_mode   = rf_sw_temp;
-                    dev_info.rf_channel  = rf_sw_temp;
-                    dev_info.ble_channel = rf_sw_temp;
-                    uart_send_cmd(CMD_SET_LINK, 10, 20);
+                    link_mode_set();
                 }
             }
             return false;
@@ -102,12 +94,8 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
                 }
             } else if (f_rf_sw_press) {
                 f_rf_sw_press = 0;
-
                 if (rf_sw_press_delay < RF_LONG_PRESS_DELAY) {
-                    dev_info.link_mode   = rf_sw_temp;
-                    dev_info.rf_channel  = rf_sw_temp;
-                    dev_info.ble_channel = rf_sw_temp;
-                    uart_send_cmd(CMD_SET_LINK, 10, 20);
+                    link_mode_set();
                 }
             }
             return false;
@@ -121,12 +109,8 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
                 }
             } else if (f_rf_sw_press) {
                 f_rf_sw_press = 0;
-
                 if (rf_sw_press_delay < RF_LONG_PRESS_DELAY) {
-                    dev_info.link_mode   = rf_sw_temp;
-                    dev_info.rf_channel  = rf_sw_temp;
-                    dev_info.ble_channel = rf_sw_temp;
-                    uart_send_cmd(CMD_SET_LINK, 10, 20);
+                    link_mode_set();
                 }
             }
             return false;

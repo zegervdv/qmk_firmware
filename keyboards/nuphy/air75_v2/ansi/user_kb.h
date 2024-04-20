@@ -198,4 +198,5 @@ void    kb_config_reset(void);
 void    user_set_rgb_color(int index, uint8_t red, uint8_t green, uint8_t blue);
 void    led_power_handle(void);
 void    toggle_sleep_mode(void);
+void    link_mode_set(void);
 uint8_t uart_send_cmd(uint8_t cmd, uint8_t ack_cnt, uint8_t delayms);
