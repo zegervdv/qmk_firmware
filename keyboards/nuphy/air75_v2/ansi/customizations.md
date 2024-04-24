@@ -47,6 +47,7 @@ The following keys are unnamed as they are QMK key combinations. They will show 
 | Key Code     | Function               |
 | ------------ | ---------------------- |
 | `0xc1`       | Launch Mission Control |
+| `0xc2`       | Launchpad              |
 | `G(KC_SPC)`  | Mac Search             |
 | `G(S(KC_4))` | Mac Print Screen Area  |
 | `G(S(KC_3))` | Mac Print Screen Whole |
