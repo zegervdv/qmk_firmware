@@ -81,3 +81,15 @@ uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) {
             return TAPPING_TERM;
     }
 }
+
+bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
+    switch (keycode) {
+        case LCTL_T(KC_ESC):
+            // Immediately select HOLD when another key is pressed in combination
+            // with CAPSLOCK
+            return true;
+
+        default:
+            return false;
+    }
+}
